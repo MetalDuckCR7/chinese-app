@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
+    <!-- /pinyin-pro -->
     <script src="https://unpkg.com/pinyin-pro"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
@@ -15,27 +16,29 @@
         .btn-record.recording { background: #ff9800; }
         .btn-next { background: #673ab7; color: white; margin-top: 10px; width: auto; min-width: 140px; float: right; padding: 10px 14px; font-size: 14px; border-radius: 6px; }
         .button-row { display: block; width: 100%; overflow: hidden; margin-top: 5px; }
+        
         .result-box, .preview-box { margin-top: 12px; padding: 10px; border-radius: 8px; background: #eee; text-align: left; }
         .preview-box { background: #f0f7ff; text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 5px; }
         .result-box h3 { margin: 0 0 8px 0; font-size: 16px; }
         .result-box p { margin: 8px 0 0 0; font-size: 15px; }
+        
         .toggle-container, .slider-container { margin: 10px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
         .slider-container { flex-direction: column; align-items: flex-start; gap: 3px; }
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
-        /* Base Character Pair Sizing Setup Character-for-Character from your file */
-        .char-pair { display: inline-flex !important; flex-direction: column !important; align-items: center !important; margin: 2px 4px !important; min-width: 30px; }
+        /* Rigid structural vertical block grid parameters */
+        .char-pair { display: inline-flex !important; flex-direction: column !important; align-items: center !important; margin: 4px 8px !important; min-width: 35px !important; text-align: center !important; }
         
-        /* TOP BOX FONTS ONLY: Blue alphabets are upscaled to 32px, Chinese text downsized to 16px */
-        #livePreview .pinyin-sub { font-size: 32px !important; color: #007bff; font-weight: bold; display: block !important; }
-        #livePreview .chinese-char { font-size: 16px !important; font-weight: bold; display: block !important; }
+        /* TOP BOX FONTS: Blue alphabets 32px, Chinese characters downsized to 16px */
+        #livePreview .pinyin-sub { font-size: 32px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; }
+        #livePreview .chinese-char { font-size: 16px !important; font-weight: bold; display: block !important; visibility: visible !important; }
         
-        /* BOTTOM BOX FONTS ONLY: Keeps your original working baseline structure perfectly intact */
-        #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; }
-        #visualFeedback .chinese-char { font-size: 28px !important; font-weight: bold; display: block !important; }
+        /* BOTTOM BOX FONTS: Keeps your exact verified original font properties visible */
+        #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; }
+        #visualFeedback .chinese-char { font-size: 18px !important; font-weight: bold; display: block !important; visibility: visible !important; }
         
-        /* Result Colors */
+        /* Result Color Highlights applied specifically to the visible nodes */
         .matched .chinese-char { color: #2e7d32 !important; }
         .mismatched .chinese-char { color: #c62828 !important; text-decoration: line-through !important; }
         .hide-pinyin .pinyin-sub { visibility: hidden !important; }
@@ -61,9 +64,11 @@
     <button class="btn-listen" id="listenBtn">🔊 1. Listen to Teacher</button>
     <button class="btn-record" id="recordBtn">🎙️ 2. Press & Speak</button>
     <div id="status" style="margin: 8px 0; color: #666; font-size: 14px;">Status: Ready</div>
+    
+    <!-- Analysis Results: Hidden on initialization until speech event handles layout parsing -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
-        <div id="visualFeedback" style="text-align: center; background: white; padding: 12px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
+        <div id="visualFeedback" style="text-align: center; background: white; padding: 12px; border-radius: 6px; display: flex !important; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
         <p id="accuracyResult" style="font-weight: bold; text-align: center;"></p>
     </div>
     <div class="button-row">
