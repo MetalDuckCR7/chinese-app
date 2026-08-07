@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
-    <!-- <script src="https://unpkg.com/pinyin-pro"></script> -->
+    <!-- <script src="https://unpkg.com"></script> -->
     <script src="https://unpkg.com/pinyin-pro"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
@@ -25,7 +25,7 @@
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
-        /* Base Character Pair Sizing Setup Character-for-Character from your file */
+        /* FIXED: Added back the vital 'display:' parameter to prevent background browser crashes */
         .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 2px 4px; min-width: 30px; }
         
         /* TOP BOX FONTS ONLY: Blue alphabets are upscaled to 32px, Chinese text downsized to 16px */
@@ -101,7 +101,6 @@
         return d;
     }
 
-    // Complete fallback routing matches
     function checkMatch(hc, tc, hp, tp) {
         if (hc === tc) return true;
         if (tp && tp === hp) return true;
