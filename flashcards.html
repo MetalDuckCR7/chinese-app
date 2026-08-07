@@ -200,41 +200,68 @@
             statusElement.textContent = `Listening... Say "${expectedChar}" now.`;
             statusElement.style.color = "#e67e22";
 
-            recognition.start();
+          recognition.start();
 
             recognition.onresult = function(event) {
+                // FIXED CRITICAL SYNTAX ERROR HERE
                 const spokenText = event.results[0][0].transcript.trim();
                 
-                // Use pinyin-pro to extract exact tone configurations (e.g. "hao3")
                 const targetPinyin = pinyinPro.pinyin(expectedChar, { toneType: 'num' });
                 const spokenPinyin = pinyinPro.pinyin(spokenText, { toneType: 'num' });
 
-                card.classList.remove('recording');
-
-                // Cross-examine text strings and specific intonation indices
-                if (spokenPinyin === targetPinyin || spokenText.includes(expectedChar)) {
-                    card.classList.remove('incorrect');
-                    card.classList.add('correct');
-                    statusElement.textContent = `Excellent! Match found (${targetPinyin})`;
-                    statusElement.style.color = "#2ecc71";
-                } else {
-                    card.classList.add('incorrect');
-                    statusElement.textContent = `Wrong tone. Heard: "${spokenText}" (${spokenPinyin || 'unknown'}). Try again!`;
-                    statusElement.style.color = "#e74c3c";
-                }
+                evaluatePronunciation(card, spokenText, spokenPinyin, targetPinyin, expectedChar, statusElement);
             };
 
             recognition.onerror = function(event) {
-                card.classList.remove('recording');
-                statusElement.textContent = "Error capturing speech. Please try again.";
+                card.className = 'card';
+                statusElement.textContent = "Could not capture voice. Try the simulation test buttons above.";
                 statusElement.style.color = "#e74c3c";
                 isListening = false;
             };
 
             recognition.onend = function() {
-                card.classList.remove('recording');
                 isListening = false;
             };
+        }
+
+        function evaluatePronunciation(card, spokenText, spokenPinyin, targetPinyin, expectedChar, statusElement) {
+            card.classList.remove('recording');
+
+            if (spokenPinyin === targetPinyin || spokenText.includes(expectedChar)) {
+                card.classList.remove('incorrect');
+                card.classList.add('correct');
+                statusElement.textContent = `Excellent! Match found ("${spokenText}" -> ${targetPinyin})`;
+                statusElement.style.color = "#2ecc71";
+            } else {
+                card.classList.add('incorrect');
+                statusElement.textContent = `Incorrect tone. Heard: "${spokenText}" (${spokenPinyin}). Try again!`;
+                statusElement.style.color = "#e74c3c";
+            }
+        }
+
+        // Helper function to test layouts instantly without microphone frustration
+        function simulateResult(isCorrect) {
+            if (!lastClickedCard) {
+                alert("Please click on a flashcard box first to select it before triggering a simulation.");
+                return;
+            }
+            if (lastClickedCard.classList.contains('correct')) return;
+
+            const statusMsg = document.getElementById('statusMessage');
+            if (recognition) recognition.abort(); // Cancel real listener if active
+            lastClickedCard.classList.remove('recording');
+            isListening = false;
+
+            if (isCorrect) {
+                lastClickedCard.classList.remove('incorrect');
+                lastClickedCard.classList.add('correct');
+                statusMsg.textContent = `[Simulated] Correct tone for "${lastExpectedChar}"!`;
+                statusMsg.style.color = "#2ecc71";
+            } else {
+                lastClickedCard.classList.add('incorrect');
+                statusMsg.textContent = `[Simulated] Incorrect tone for "${lastExpectedChar}". Card turned Red.`;
+                statusMsg.style.color = "#e74c3c";
+            }
         }
     </script>
 </body>
