@@ -110,12 +110,12 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
-    // Safe, fully verified browser engine layout call routing fallback checks
+    // Robust Pinyin resolution helper designed specifically for the unpkg browser build
     function getPinyinString(textData) {
-        if (typeof pinyinPro !== 'undefined' && pinyinPro.pinyin) {
+        if (typeof pinyinPro !== 'undefined' && typeof pinyinPro.pinyin === 'function') {
             return pinyinPro.pinyin(textData);
         }
-        if (typeof pinyin !== 'undefined') {
+        if (typeof pinyin === 'function') {
             return pinyin(textData);
         }
         return "";
