@@ -4,17 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Chinese Study App</title>
+    <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
+    <script src="https://unpkg.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background: #fafafa; }
-        .card { background: white; padding: 25px; border-radius: 16px; max-width: 450px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background: #fafafa; color: #333; }
+        .card { background: white; padding: 25px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         input, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { font-weight: bold; border: none; cursor: pointer; }
+        button { font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
         .result-box { margin-top: 20px; padding: 15px; border-radius: 8px; background: #eee; text-align: left; }
-        .matched { color: #2e7d32; font-weight: bold; font-size: 24px; }
-        .mismatched { color: #c62828; font-weight: bold; font-size: 24px; text-decoration: line-through; }
+        
+        /* Layout for display text with Pinyin subtitles above it */
+        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px; min-width: 30px; }
+        .pinyin-sub { font-size: 14px; color: #666; height: 20px; font-weight: normal; }
+        .chinese-char { font-size: 28px; font-weight: bold; }
+        
+        /* Result Colors */
+        .matched .chinese-char { color: #2e7d32; }
+        .mismatched .chinese-char { color: #c62828; text-decoration: line-through; }
     </style>
 </head>
 <body>
@@ -30,10 +39,11 @@
     
     <div id="status" style="margin: 10px 0; color: #666;">Status: Ready</div>
     
+    <!-- Analysis Results -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
         <div id="visualFeedback"></div>
-        <p id="accuracyResult" style="font-weight: bold; margin-top: 10px;"></p>
+        <p id="accuracyResult" style="font-weight: bold; margin-top: 15px;"></p>
     </div>
 </div>
 
@@ -46,25 +56,24 @@
     const visualFeedback = document.getElementById('visualFeedback');
     const accuracyResult = document.getElementById('accuracyResult');
 
-    // 1. Text-to-Speech (Play audio)
+    // 1. Text-to-Speech (Audio Engine)
     listenBtn.addEventListener('click', () => {
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
         
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN'; // Set voice to Mandarin Chinese
+        utterance.lang = 'zh-CN'; 
         window.speechSynthesis.speak(utterance);
     });
 
-    // 2. Speech Recognition (No API Key Required)
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // 2. Free Speech Recognition Engine
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Your browser does not support free speech recognition. Please use Google Chrome.");
+        alert("Your tablet browser does not fully support free voice detection. Please make sure you are using official Google Chrome.");
     } else {
         const recognition = new SpeechRecognition();
-        recognition.lang = 'zh-CN'; // Listen for Mandarin
+        recognition.lang = 'zh-CN';
         recognition.interimResults = false;
-
         let isRecording = false;
 
         recordBtn.addEventListener('click', () => {
@@ -76,7 +85,7 @@
                 isRecording = true;
                 recordBtn.innerText = "🛑 Recording... Speak Now";
                 recordBtn.classList.add('recording');
-                statusText.innerText = "Listening to your pronunciation...";
+                statusText.innerText = "Listening closely to your pronunciation...";
             } else {
                 recognition.stop();
             }
@@ -101,22 +110,40 @@
 
             let correctCount = 0;
             
-            // Compare character by character
+            // Get Pinyin arrays using the free external pinyinPro library
+            const targetPinyinArray = pinyinPro.pinyin(targetText, { type: 'array' }) || [];
+            const heardPinyinArray = pinyinPro.pinyin(heardText, { type: 'array' }) || [];
+
             for (let i = 0; i < targetText.length; i++) {
-                const span = document.createElement('span');
-                if (heardText[i] === targetText[i]) {
-                    span.innerText = targetText[i] + " ";
-                    span.className = "matched";
+                const pairDiv = document.createElement('div');
+                pairDiv.className = "char-pair";
+
+                const pinyinSub = document.createElement('span');
+                pinyinSub.className = "pinyin-sub";
+                
+                const charSpan = document.createElement('span');
+                charSpan.className = "chinese-char";
+
+                // Check character match or close Pinyin matches if characters diverge but phonetics match
+                if (heardText[i] === targetText[i] || (targetPinyinArray[i] && targetPinyinArray[i] === heardPinyinArray[i])) {
+                    pinyinSub.innerText = targetPinyinArray[i] || "";
+                    charSpan.innerText = targetText[i];
+                    pairDiv.className += " matched";
                     correctCount++;
                 } else {
-                    span.innerText = (heardText[i] || "❓") + " ";
-                    span.className = "mismatched";
+                    // Show target Pinyin so they know how it should sound, but mark text red/strikeout
+                    pinyinSub.innerText = targetPinyinArray[i] || "";
+                    charSpan.innerText = heardText[i] || "❓";
+                    pairDiv.className += " mismatched";
                 }
-                visualFeedback.appendChild(span);
+
+                pairDiv.appendChild(pinyinSub);
+                pairDiv.appendChild(charSpan);
+                visualFeedback.appendChild(pairDiv);
             }
 
             const percentage = Math.round((correctCount / targetText.length) * 100);
-            accuracyResult.innerText = `Match Score: ${percentage}% (${correctCount} of ${targetText.length} characters correct)`;
+            accuracyResult.innerText = `Match Score: ${percentage}% (${correctCount} of ${targetText.length} correct)`;
         }
     }
 </script>
