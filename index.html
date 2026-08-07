@@ -36,7 +36,7 @@
         
         /* BOTTOM BOX FONTS: Keeps your exact verified original font properties visible */
         #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; }
-        #visualFeedback .chinese-char { font-size: 18px !important; font-weight: bold; display: block !important; visibility: visible !important; }
+        #visualFeedback .chinese-char { font-size: 28px !important; font-weight: bold; display: block !important; visibility: visible !important; }
         
         /* Result Color Highlights applied specifically to the visible nodes */
         .matched .chinese-char { color: #2e7d32 !important; }
@@ -65,7 +65,6 @@
     <button class="btn-record" id="recordBtn">🎙️ 2. Press & Speak</button>
     <div id="status" style="margin: 8px 0; color: #666; font-size: 14px;">Status: Ready</div>
     
-    <!-- Analysis Results: Hidden on initialization until speech event handles layout parsing -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
         <div id="visualFeedback" style="text-align: center; background: white; padding: 12px; border-radius: 6px; display: flex !important; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
@@ -195,8 +194,9 @@
             }
         });
 
+        // FIXED CRITICAL SPEECH RECOGNITION VALUE RETURN PROPERTY PATH
         recognition.onresult = function(event) {
-            const resultText = event.results.transcript;
+            const resultText = event.results[0][0].transcript;
             analyzeSpeech(resultText);
         };
 
