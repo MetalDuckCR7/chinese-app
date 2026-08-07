@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
     <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
-    <script src="https://unpkg.com/pinyin-pro"></script>
+    <script src="https://unpkg.com"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
         .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -13,7 +13,7 @@
         /* Larger font size and padding for the main Chinese input box */
         input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; }
         
-        button { width: 100%; padding: 14px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
@@ -34,14 +34,21 @@
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
-        /* Optimized structural layout for characters. Smaller 12px Hanyu Pinyin height rules */
-        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 2px 4px; min-width: 30px; }
-        .pinyin-sub { font-size: 28px; color: #007bff; font-weight: bold; }
-        .chinese-char { font-size: 12px; font-weight: bold; }
+        /* Base layout structure for vertical columns */
+        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 4px 8px; min-width: 35px; text-align: center; }
         
-        /* Result Colors */
-        .matched .chinese-char { color: #2e7d32; }
-        .mismatched .chinese-char { color: #c62828; text-decoration: line-through; }
+        /* Top Preview Box Settings: Hides Chinese characters completely, displays only Large Blue Pinyin */
+        #livePreview .chinese-char { display: none !important; }
+        #livePreview .pinyin-sub { font-size: 28px; color: #007bff; font-weight: bold; line-height: 32px; text-transform: lowercase; }
+        
+        /* Bottom Results Box Settings: Large Chinese Character on top, Small Pinyin underneath */
+        #visualFeedback .char-pair { flex-direction: column-reverse !important; }
+        #visualFeedback .chinese-char { font-size: 28px; font-weight: bold; line-height: 34px; color: #333; display: block; }
+        #visualFeedback .pinyin-sub { font-size: 14px; color: #007bff; font-weight: bold; line-height: 18px; margin-top: 2px; text-transform: lowercase; }
+        
+        /* Result Color Highlights applied specifically to the larger characters */
+        .matched .chinese-char { color: #2e7d32 !important; }
+        .mismatched .chinese-char { color: #c62828 !important; text-decoration: line-through; }
         
         /* Hide class based on switch selection */
         .hide-pinyin .pinyin-sub { visibility: hidden; }
@@ -80,8 +87,8 @@
     <!-- Analysis Results -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
-        <div id="visualFeedback" style="text-align: center; background: white; padding: 8px; border-radius: 6px;"></div>
-        <p id="accuracyResult" style="font-weight: bold; text-align: center;"></p>
+        <div id="visualFeedback" style="text-align: center; background: white; padding: 12px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
+        <p id="accuracyResult" style="font-weight: bold; text-align: center; margin-top: 10px;"></p>
     </div>
 
     <!-- Permanent Bottom Right Button Row Container Area -->
