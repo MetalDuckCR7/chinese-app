@@ -54,13 +54,10 @@
     <h2>🇨🇳 Papa Big Chin Free Chinese Practise</h2>
     <p style="margin: 5px 0 12px 0;">Type a phrase, listen, and repeat!</p>
     
-    <!-- Cleaned input text box interface area fields -->
     <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)" value="老师好">
     
-    <!-- Clean, independent live Pinyin subtitle view container area block -->
     <div class="preview-box" id="livePreview"></div>
     
-    <!-- Speaking Speed Slider -->
     <div class="slider-container">
         <label for="speedSlider" style="font-weight: bold;">Teacher's Voice Speed:</label>
         <div class="slider-row">
@@ -79,14 +76,12 @@
     
     <div id="status" style="margin: 8px 0; color: #666; font-size: 14px;">Status: Ready</div>
     
-    <!-- Analysis Results -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
         <div id="visualFeedback" style="text-align: center; background: white; padding: 10px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
         <p id="accuracyResult" style="font-weight: bold; text-align: center; margin-top: 10px;"></p>
     </div>
 
-    <!-- Positioned Flash Cards Nav Action button block area layout -->
     <div class="button-row">
         <button class="btn-next" id="nextPageBtn">Flash Cards ➡️</button>
     </div>
@@ -105,7 +100,6 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
-    // Safe extraction of the global library reference logic paths
     const globalPinyinTool = pinyinPro.pinyin;
 
     function createColumnElement(pinyinText, resultStyleClass) {
@@ -200,7 +194,9 @@
         });
 
         recognition.onresult = function(event) {
-            analyzeSpeech(event.results.transcript);
+            // Fixed correct object nested array path properties
+            const resultText = event.results[0][0].transcript;
+            analyzeSpeech(resultText);
         };
 
         recognition.onend = function() {
