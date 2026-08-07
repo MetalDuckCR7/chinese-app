@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
     <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
-    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com/pinyin-pro"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
         .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -13,7 +13,7 @@
         /* Larger font size and padding for the main Chinese input box */
         input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; }
         
-        button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button { width: 100%; padding: 14px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
@@ -103,6 +103,9 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
+    // Extract core global framework components directly to clear layout glitches
+    const { pinyin } = pinyinPro;
+
     function createPairNode(charVal, pinyinVal, classVal) {
         const d = document.createElement('div');
         d.className = "char-pair " + classVal;
@@ -133,8 +136,7 @@
         if (pinyinToggle.checked) livePreview.classList.remove('hide-pinyin');
         else livePreview.classList.add('hide-pinyin');
         
-        // Corrected browser script engine object access paths
-        const pinStr = pinyinPro.pinyin(txt) || "";
+        const pinStr = pinyin(txt) || "";
         const pinArr = pinStr.split(" ");
         
         let loopIdx = 0;
@@ -179,6 +181,7 @@
         window.speechSynthesis.speak(utterance);
     });
 
+    // Links out immediately to your standalone flashcards file page matching typed constraints
     nextPageBtn.addEventListener('click', function() {
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
@@ -187,7 +190,7 @@
 
     const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Your tablet browser does not fully support free voice detection. Please make sure you are using official Google Chrome.");
+        alert("Your tablet browser does not fully support free voice detection. Please use official Google Chrome.");
     } else {
         const recognition = new SpeechRecognition();
         recognition.lang = 'zh-CN';
@@ -229,10 +232,9 @@
             else visualFeedback.classList.add('hide-pinyin');
             
             let correctCount = 0;
-            // Corrected browser script engine object access paths
-            const targetPinyinStr = pinyinPro.pinyin(targetText) || "";
+            const targetPinyinStr = pinyin(targetText) || "";
             const targetPinyinArr = targetPinyinStr.split(" ");
-            const heardPinyinStr = pinyinPro.pinyin(heardText) || "";
+            const heardPinyinStr = pinyin(heardText) || "";
             const heardPinyinArr = heardPinyinStr.split(" ");
 
             let evalIdx = 0;
