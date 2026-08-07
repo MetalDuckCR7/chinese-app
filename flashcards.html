@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin - Flash Cards</title>
+    <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
     <script src="https://unpkg.com"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
@@ -58,31 +59,38 @@
     const backBtn = document.getElementById('backBtn');
     const finalNextBtn = document.getElementById('finalNextBtn');
 
-    // Retrieve terms securely passed inside browser address query strings
+    // Fixed global syntax reference for pinyin extraction engine setup
+    const { pinyin } = pinyinPro;
+
+    // Retrieve terms passed from the home page securely
     const urlParams = new URLSearchParams(window.location.search);
     const complexPhrase = urlParams.get('words') || "老师好";
 
-    // Split phrase into single characters, filter spaces, and randomize deck position arrays
+    // Split phrase into single characters and clean out spacing parameters
     let rawArray = complexPhrase.replace(/\s+/g, '').split("");
+    
+    // Map individual characters with their respective standalone pinyin markers
     let cardDeckData = rawArray.map(function(char) {
         return {
             character: char,
-            pinyin: pinyinPro.pinyin(char) || "",
+            pinyin: pinyin(char) || "",
             isDone: false
         };
     });
 
     // Durstenfeld Shuffle Engine to randomize configuration arrays perfectly
-    for (let i = cardDeckData.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = cardDeckData[i];
-        cardDeckData[i] = cardDeckData[j];
-        cardDeckData[j] = temp;
+    let shuffleIdx = cardDeckData.length - 1;
+    while (shuffleIdx > 0) {
+        const randomTargetIdx = Math.floor(Math.random() * (shuffleIdx + 1));
+        const temporalStorageHolder = cardDeckData[shuffleIdx];
+        cardDeckData[shuffleIdx] = cardDeckData[randomTargetIdx];
+        cardDeckData[randomTargetIdx] = temporalStorageHolder;
+        shuffleIdx = shuffleIdx - 1;
     }
 
     let activeCardIndex = null;
 
-    // Render interactive node items
+    // Render interactive nodes directly inside flashcard canvas structure
     function renderFlashCards() {
         cardsGrid.innerHTML = "";
         let totalCompletedCount = 0;
@@ -123,7 +131,7 @@
             cardsGrid.appendChild(cardEl);
         });
 
-        // Unlock path controls if deck processing operations reach 100% metrics
+        // Unlock page exit controls once deck processing operations reach 100% metrics
         if (totalCompletedCount === cardDeckData.length) {
             deckStatus.innerText = "🎉 Excellent job! All cards cleared perfectly.";
             finalNextBtn.disabled = false;
@@ -153,13 +161,13 @@
         recognition.start();
 
         recognition.onresult = function(event) {
-            const speechText = event.results[0][0].transcript || "";
+            const speechText = event.results.transcript || "";
             const currentTarget = cardDeckData[targetIndex];
             
             const targetPinyin = currentTarget.pinyin;
-            const heardPinyin = pinyinPro.pinyin(speechText) || "";
+            const heardPinyin = pinyin(speechText) || "";
 
-            // Check if what they said contains the specific character or matched the pinyin pronunciation phonetics
+            // Evaluate if pronunciation string contains character glyph or maps tone phonetics
             if (speechText.includes(currentTarget.character) || (targetPinyin && heardPinyin.includes(targetPinyin))) {
                 currentTarget.isDone = true;
                 deckStatus.innerText = "🎯 Correct pronunciation recognized!";
@@ -178,7 +186,7 @@
         };
     }
 
-    // Core back button workflow to return home safely
+    // Return safely back to the word input console screen
     backBtn.onclick = function() {
         window.location.href = "index.html";
     };
@@ -188,7 +196,6 @@
         window.location.href = "index.html";
     };
 
-    // Auto initialize components on startup layout operations
     window.addEventListener('DOMContentLoaded', renderFlashCards);
 </script>
 </body>
