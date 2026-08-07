@@ -110,9 +110,6 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
-    // Extract core global framework components directly to clear layout glitches
-    const { pinyin } = pinyinPro;
-
     function createPairNode(charVal, pinyinVal, classVal) {
         const d = document.createElement('div');
         d.className = "char-pair " + classVal;
@@ -143,6 +140,7 @@
         if (pinyinToggle.checked) livePreview.classList.remove('hide-pinyin');
         else livePreview.classList.add('hide-pinyin');
         
+        // Fixed: Use standard global function 'pinyin' directly from CDN
         const pinStr = pinyin(txt) || "";
         const pinArr = pinStr.split(" ");
         
@@ -188,7 +186,6 @@
         window.speechSynthesis.speak(utterance);
     });
 
-    // Links out immediately to your standalone flashcards file page matching typed constraints
     nextPageBtn.addEventListener('click', function() {
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
@@ -218,7 +215,6 @@
             }
         });
 
-        // FIXED: Re-mapped parsing rules back to your exact, validated baseline structural array query format
         recognition.onresult = function(event) {
             const resultText = event.results[0][0].transcript;
             analyzeSpeech(resultText);
@@ -240,6 +236,7 @@
             else visualFeedback.classList.add('hide-pinyin');
             
             let correctCount = 0;
+            // Fixed: Use standard global function 'pinyin' directly from CDN
             const targetPinyinStr = pinyin(targetText) || "";
             const targetPinyinArr = targetPinyinStr.split(" ");
             const heardPinyinStr = pinyin(heardText) || "";
