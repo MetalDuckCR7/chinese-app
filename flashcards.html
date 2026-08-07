@@ -6,7 +6,7 @@
     <title>Chinese Flashcards</title>
     <!-- 1. Import pinyin-pro library via CDN -->
     <script src="https://unpkg.com"></script>
-    <style>
+     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background-color: #f5f7fb;
@@ -27,12 +27,35 @@
         }
 
         .status-msg {
-            margin-bottom: 24px;
+            margin-bottom: 12px;
             font-size: 1rem;
             color: #7f8c8d;
             font-weight: bold;
             min-height: 24px;
             text-align: center;
+        }
+
+        /* Debug / Simulation Tool Panel */
+        .test-panel {
+            background: #eef2f7;
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #555;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border: 1px dashed #bdc3c7;
+        }
+
+        .test-panel button {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: white;
         }
 
         .flashcard-container {
@@ -61,33 +84,33 @@
             cursor: pointer;
         }
 
-        /* Active recording visual style */
+        /* Active recording animation */
         .card.recording {
-            border-color: #e67e22;
-            animation: pulse 1.5s infinite;
-            cursor: wait;
+            border-color: #e67e22 !important;
+            animation: pulse 1.2s infinite;
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.4); }
+            0% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.5); }
             70% { box-shadow: 0 0 0 10px rgba(230, 126, 34, 0); }
             100% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); }
         }
 
-        /* Incorrect intonation visual style */
+        /* Incorrect visual modifier */
         .card.incorrect {
             color: #e74c3c !important;
-            border-color: #e74c3c;
+            border-color: #e74c3c !important;
+            background-color: #fff5f5;
         }
 
-        /* Correct intonation visual style */
+        /* Correct visual modifier */
         .card.correct {
             color: #2ecc71 !important;
-            border-color: #2ecc71;
-            background-color: #fafffa;
-            pointer-events: none; /* Disables clicking again */
-            transform: none !important;
+            border-color: #2ecc71 !important;
+            background-color: #f5fff7;
+            pointer-events: none; /* Block clicking again */
             box-shadow: none;
+            transform: none !important;
         }
 
         @media (min-width: 768px) {
@@ -98,13 +121,6 @@
                 max-width: 900px;
             }
             .card { font-size: 3.5rem; }
-        }
-
-        .no-data {
-            grid-column: span 3;
-            text-align: center;
-            font-size: 1.1rem;
-            color: #7f8c8d;
         }
 
         .back-btn {
@@ -118,7 +134,6 @@
             cursor: pointer;
             text-decoration: none;
         }
-
         .back-btn:hover { background-color: #2980b9; }
     </style>
 </head>
@@ -126,6 +141,13 @@
 
     <h1>Study Deck</h1>
     <div class="status-msg" id="statusMessage">Tap a card and speak the character clearly.</div>
+
+    <!-- Testing Mode Helper Box -->
+    <div class="test-panel">
+        <span>⚙️ <strong>Test Helper:</strong> If voice recognition fails, select a card then click:</span>
+        <button onclick="simulateResult(true)">Force Success (Green)</button>
+        <button onclick="simulateResult(false)">Force Failure (Red)</button>
+    </div>
 
     <div class="flashcard-container" id="cardContainer">
         <!-- Cards injected dynamically -->
@@ -136,46 +158,29 @@
     <script>
         let recognition;
         let isListening = false;
+        let lastClickedCard = null;
+        let lastExpectedChar = "";
 
-        // Initialize Browser Speech Recognition Engine
+        // Initialize Speech Recognition
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-            recognition.lang = 'zh-CN'; // Force Chinese Language Input
+            recognition.lang = 'zh-CN'; 
             recognition.continuous = false;
             recognition.interimResults = false;
         } else {
-            document.getElementById('statusMessage').textContent = "Error: Browser does not support Speech Recognition.";
-        }
-
-        function getQueryParams() {
-            const params = {};
-            const search = window.location.search.substring(1);
-            if (search) {
-                const pairs = search.split("&");
-                for (let i = 0; i < pairs.length; i++) {
-                    const pair = pairs[i].split("=");
-                    params[decodeURIComponent(pair)] = decodeURIComponent(pair || '');
-                }
-            }
-            return params;
+            document.getElementById('statusMessage').textContent = "Error: Browser Speech Recognition not supported.";
         }
 
         window.onload = function() {
-            const params = getQueryParams();
             const container = document.getElementById('cardContainer');
             const statusMsg = document.getElementById('statusMessage');
             
-            // ==========================================
-            // TESTING MODIFICATION: HARDCODED CHARACTERS
-            // Replace the line below with: const textInput = params['characters'];
-            // ==========================================
+            // Testing string simulation
             const textInput = "老师您好"; 
-            // ==========================================
 
-            if (textInput && textInput.trim() !== "") {
+            if (textInput) {
                 const characters = textInput.replace(/\s+/g, '').split('');
-
                 characters.forEach(char => {
                     const card = document.createElement('div');
                     card.className = 'card';
@@ -187,20 +192,22 @@
 
                     container.appendChild(card);
                 });
-            } else {
-                container.innerHTML = '<p class="no-data">No characters received.</p>';
             }
         };
 
         function handleCardClick(card, expectedChar, statusElement) {
             if (isListening || card.classList.contains('correct') || !recognition) return;
 
+            // Track state for the simulation buttons
+            lastClickedCard = card;
+            lastExpectedChar = expectedChar;
+
             isListening = true;
-            card.classList.add('recording');
+            card.className = 'card recording'; // Clear old red error colors while recording
             statusElement.textContent = `Listening... Say "${expectedChar}" now.`;
             statusElement.style.color = "#e67e22";
 
-          recognition.start();
+            recognition.start();
 
             recognition.onresult = function(event) {
                 // FIXED CRITICAL SYNTAX ERROR HERE
