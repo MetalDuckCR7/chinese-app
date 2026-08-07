@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
     <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
-    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com/pinyin-pro"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background: #fafafa; color: #333; }
         .card { background: white; padding: 25px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -102,7 +102,9 @@
     }
 
     function checkMatch(hc, tc, hp, tp) {
-        return (hc === tc || (tp && tp === hp));
+        if (hc === tc) return true;
+        if (tp && tp === hp) return true;
+        return false;
     }
 
     function updateLivePreview() {
@@ -118,11 +120,14 @@
         const pinStr = pinyinPro.pinyin(txt) || "";
         const pinArr = pinStr.split(" ");
         
-        Array.from(txt).map(function(character, index) {
-            const currentPinyin = pinArr[index] || "";
-            const node = createPairNode(character, currentPinyin, "");
+        let loopIdx = 0;
+        while (loopIdx < txt.length) {
+            const currentCharacter = txt.charAt(loopIdx);
+            const currentPinyin = pinArr[loopIdx] || "";
+            const node = createPairNode(currentCharacter, currentPinyin, "");
             livePreview.appendChild(node);
-        });
+            loopIdx = loopIdx + 1;
+        }
     }
 
     targetTextInput.addEventListener('input', updateLivePreview);
@@ -181,7 +186,8 @@
         });
 
         recognition.onresult = function(event) {
-            analyzeSpeech(event.results.transcript);
+            const resultText = event.results[0][0].transcript;
+            analyzeSpeech(resultText);
         };
 
         recognition.onend = function() {
@@ -200,13 +206,17 @@
             else visualFeedback.classList.add('hide-pinyin');
             
             let correctCount = 0;
-            const targetPinyinArr = (pinyinPro.pinyin(targetText) || "").split(" ");
-            const heardPinyinArr = (pinyinPro.pinyin(heardText) || "").split(" ");
+            const targetPinyinStr = pinyinPro.pinyin(targetText) || "";
+            const targetPinyinArr = targetPinyinStr.split(" ");
+            const heardPinyinStr = pinyinPro.pinyin(heardText) || "";
+            const heardPinyinArr = heardPinyinStr.split(" ");
 
-            Array.from(targetText).map(function(tChar, index) {
-                const tPin = targetPinyinArr[index] || "";
-                const hPin = heardPinyinArr[index] || "";
-                const hChar = heardText.charAt(index) || "❓";
+            let evalIdx = 0;
+            while (evalIdx < targetText.length) {
+                const tChar = targetText.charAt(evalIdx);
+                const tPin = targetPinyinArr[evalIdx] || "";
+                const hPin = heardPinyinArr[evalIdx] || "";
+                const hChar = heardText.charAt(evalIdx) || "❓";
                 const isWinner = checkMatch(hChar, tChar, hPin, tPin);
                 
                 if (isWinner) {
@@ -215,7 +225,8 @@
                 } else {
                     visualFeedback.appendChild(createPairNode(hChar, tPin, "mismatched"));
                 }
-            });
+                evalIdx = evalIdx + 1;
+            }
 
             const score = Math.round((correctCount / targetText.length) * 100);
             accuracyResult.innerText = "Match Score: " + score + "% (" + correctCount + " of " + targetText.length + " correct)";
