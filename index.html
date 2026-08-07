@@ -13,7 +13,7 @@
         /* Larger font size and padding for the main Chinese input box */
         input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; }
         
-        button { width: 100%; padding: 14px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
@@ -173,14 +173,11 @@
         window.speechSynthesis.speak(utterance);
     });
 
-    // Custom operational link action for your Next Page Button
     nextPageBtn.addEventListener('click', function() {
         alert("Navigating to the next study page module placeholder...");
-        // Examples if you want to connect another page later:
-        // window.location.href = "https://github.io";
     });
 
-    const SpeechRecognition = window.webkitSpeechRecognition || window.Recognition || window.SpeechRecognition;
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     if (!SpeechRecognition) {
         alert("Your tablet browser does not fully support free voice detection. Please use official Google Chrome.");
     } else {
