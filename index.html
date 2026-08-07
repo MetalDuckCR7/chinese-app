@@ -25,21 +25,21 @@
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
-        /* FIXED: Added back the vital 'display:' parameter to prevent background browser crashes */
-        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 2px 4px; min-width: 30px; }
+        /* Clear parent alignment constraints to guarantee full mobile spacing metrics */
+        .char-pair { display: inline-flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; margin: 4px 8px !important; min-width: 35px !important; text-align: center !important; }
         
-        /* TOP BOX FONTS ONLY: Blue alphabets are upscaled to 32px, Chinese text downsized to 16px */
-        #livePreview .pinyin-sub { font-size: 32px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; }
-        #livePreview .chinese-char { font-size: 16px !important; font-weight: bold; display: block !important; visibility: visible !important; }
+        /* TOP BOX FONTS ONLY: Upscaled Pinyin to 32px, downsized Chinese character to 16px */
+        #livePreview .pinyin-sub { font-size: 32px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; line-height: 36px !important; }
+        #livePreview .chinese-char { font-size: 16px !important; font-weight: bold; display: block !important; visibility: visible !important; line-height: 20px !important; margin-top: 2px !important; }
         
-        /* BOTTOM BOX FONTS ONLY: Keeps your original working baseline structure perfectly intact */
-        #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; }
-        #visualFeedback .chinese-char { font-size: 28px !important; font-weight: bold; display: block !important; visibility: visible !important; }
+        /* BOTTOM BOX FONTS ONLY: Restored perfectly to your original working font dimensions character-for-character */
+        #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; line-height: 22px !important; }
+        #visualFeedback .chinese-char { font-size: 28px !important; font-weight: bold; display: block !important; visibility: visible !important; line-height: 32px !important; margin-top: 2px !important; }
         
         /* Result Colors */
         .matched .chinese-char { color: #2e7d32 !important; }
-        .mismatched .chinese-char { color: #c62828 !important; text-decoration: line-through; }
-        .hide-pinyin .pinyin-sub { visibility: hidden !important; }
+        .mismatched .chinese-char { color: #c62828 !important; text-decoration: line-through !important; }
+        .hide-pinyin .pinyin-sub { visibility: hidden !important; display: none !important; }
     </style>
 </head>
 <body>
