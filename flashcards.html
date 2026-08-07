@@ -59,8 +59,8 @@
     const backBtn = document.getElementById('backBtn');
     const finalNextBtn = document.getElementById('finalNextBtn');
 
-    // Fixed global syntax reference for pinyin extraction engine setup
-    const { pinyin } = pinyinPro;
+    // Safe global engine layout access path definitions
+    const globalPinyinTool = pinyinPro.pinyin;
 
     // Retrieve terms passed from the home page securely
     const urlParams = new URLSearchParams(window.location.search);
@@ -69,14 +69,19 @@
     // Split phrase into single characters and clean out spacing parameters
     let rawArray = complexPhrase.replace(/\s+/g, '').split("");
     
-    // Map individual characters with their respective standalone pinyin markers
-    let cardDeckData = rawArray.map(function(char) {
-        return {
-            character: char,
-            pinyin: pinyin(char) || "",
+    // Map individual characters with their respective standalone pinyin markers securely
+    let cardDeckData = [];
+    let loadIdx = 0;
+    while (loadIdx < rawArray.length) {
+        const targetChar = rawArray[loadIdx];
+        const generatedPinyin = globalPinyinTool(targetChar) || "";
+        cardDeckData.push({
+            character: targetChar,
+            pinyin: generatedPinyin,
             isDone: false
-        };
-    });
+        });
+        loadIdx = loadIdx + 1;
+    }
 
     // Durstenfeld Shuffle Engine to randomize configuration arrays perfectly
     let shuffleIdx = cardDeckData.length - 1;
@@ -94,15 +99,19 @@
     function renderFlashCards() {
         cardsGrid.innerHTML = "";
         let totalCompletedCount = 0;
+        let displayIdx = 0;
 
-        cardDeckData.forEach(function(cardItem, index) {
+        while (displayIdx < cardDeckData.length) {
+            const cardItem = cardDeckData[displayIdx];
+            const currentIndexValue = displayIdx;
+
             const cardEl = document.createElement('div');
             cardEl.className = "flash-card";
             
             if (cardItem.isDone) {
                 cardEl.className += " completed";
                 totalCompletedCount = totalCompletedCount + 1;
-            } else if (activeCardIndex === index) {
+            } else if (activeCardIndex === currentIndexValue) {
                 cardEl.className += " recording";
             }
 
@@ -122,14 +131,14 @@
             cardEl.appendChild(pinSpan);
             cardEl.appendChild(charSpan);
 
-            // Click listener workflow to engage vocal engine processes on uncompleted elements
             cardEl.onclick = function() {
                 if (cardItem.isDone || activeCardIndex !== null) return;
-                triggerCardVoiceRecognition(index);
+                triggerCardVoiceRecognition(currentIndexValue);
             };
 
             cardsGrid.appendChild(cardEl);
-        });
+            displayIdx = displayIdx + 1;
+        }
 
         // Unlock page exit controls once deck processing operations reach 100% metrics
         if (totalCompletedCount === cardDeckData.length) {
@@ -144,7 +153,7 @@
     function triggerCardVoiceRecognition(targetIndex) {
         activeCardIndex = targetIndex;
         renderFlashCards();
-        deckStatus.innerText = "🎙️ Listening closely... Say: " + cardDeckData[targetIndex].character;
+        deckStatus.innerText = "🎙 *Listening closely... Say:* " + cardDeckData[targetIndex].character;
 
         const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         if (!SpeechRecognition) {
@@ -161,11 +170,11 @@
         recognition.start();
 
         recognition.onresult = function(event) {
-            const speechText = event.results.transcript || "";
+            const speechText = event.results[0][0].transcript || "";
             const currentTarget = cardDeckData[targetIndex];
             
             const targetPinyin = currentTarget.pinyin;
-            const heardPinyin = pinyin(speechText) || "";
+            const heardPinyin = globalPinyinTool(speechText) || "";
 
             // Evaluate if pronunciation string contains character glyph or maps tone phonetics
             if (speechText.includes(currentTarget.character) || (targetPinyin && heardPinyin.includes(targetPinyin))) {
