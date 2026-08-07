@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Chinese Study App</title>
+    <title>Papa Big Chin Free Chinese Practise</title>
     <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
     <script src="https://unpkg.com"></script>
     <style>
@@ -25,7 +25,7 @@
         
         /* Layout for display text with Pinyin subtitles above it */
         .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px; min-width: 30px; }
-        .pinyin-sub { font-size: 14px; color: #666; height: 20px; font-weight: normal; }
+        .pinyin-sub { font-size: 16px; color: #007bff; height: 22px; font-weight: bold; }
         .chinese-char { font-size: 28px; font-weight: bold; }
         
         /* Result Colors */
@@ -39,7 +39,7 @@
 <body>
 
 <div class="card">
-    <h2>🇨🇳 Free Chinese Practice</h2>
+    <h2>🇨🇳 Papa Big Chin Free Chinese Practise</h2>
     <p>Type a phrase, listen, and repeat!</p>
     
     <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)">
@@ -108,13 +108,10 @@
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
         
-        // Stop any current speech before playing the next
         window.speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN'; 
-        
-        // Set voice playback speed directly from slider scale values
         utterance.rate = parseFloat(speedSlider.value);
         
         window.speechSynthesis.speak(utterance);
@@ -146,7 +143,7 @@
         });
 
         recognition.onresult = (event) => {
-            const resultText = event.results.transcript;
+            const resultText = event.results[0][0].transcript;
             analyzeSpeech(resultText);
         };
 
@@ -162,15 +159,14 @@
             visualFeedback.innerHTML = "";
             resultDiv.style.display = "block";
 
-            // Maintain toggle choice setting during recalculation
             if (!pinyinToggle.checked) visualFeedback.classList.add('hide-pinyin');
             else visualFeedback.classList.remove('hide-pinyin');
 
             let correctCount = 0;
             
-            // Fixed Global Module Function Calls
-            const targetPinyinArray = pinyinPro(targetText, { type: 'array' }) || [];
-            const heardPinyinArray = pinyinPro(heardText, { type: 'array' }) || [];
+            // Corrected Pinyin conversion library execution logic
+            const targetPinyinArray = pinyinPro.pinyin(targetText, { type: 'array' }) || [];
+            const heardPinyinArray = pinyinPro.pinyin(heardText, { type: 'array' }) || [];
 
             for (let i = 0; i < targetText.length; i++) {
                 const pairDiv = document.createElement('div');
@@ -182,14 +178,12 @@
                 const charSpan = document.createElement('span');
                 charSpan.className = "chinese-char";
 
-                // Check character match or close Pinyin matches if characters diverge but phonetics match
                 if (heardText[i] === targetText[i] || (targetPinyinArray[i] && targetPinyinArray[i] === heardPinyinArray[i])) {
                     pinyinSub.innerText = targetPinyinArray[i] || "";
                     charSpan.innerText = targetText[i];
                     pairDiv.className += " matched";
                     correctCount++;
                 } else {
-                    // Show target Pinyin so they know how it should sound, but mark text red/strikeout
                     pinyinSub.innerText = targetPinyinArray[i] || "";
                     charSpan.innerText = heardText[i] || "❓";
                     pairDiv.className += " mismatched";
