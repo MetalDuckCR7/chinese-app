@@ -4,33 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
+    <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
     <script src="https://unpkg.com"></script>
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .input-wrapper { position: relative; width: 100%; margin: 8px 0; min-height: 60px; }
-        input[type="text"] { width: 100%; padding: 16px; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; border: 1px solid #ccc; background: transparent; color: transparent; caret-color: #333; position: absolute; top: 0; left: 0; z-index: 2; }
-        .grid-overlay { width: 100%; padding: 16px; border-radius: 8px; box-sizing: border-box; position: absolute; top: 0; left: 0; z-index: 1; display: flex; justify-content: center; align-items: center; pointer-events: none; border: 1px solid transparent; flex-wrap: wrap; }
+        .card { background: white; padding: 25px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        /* High-contrast visible input box text fields styling rules */
+        input[type="text"] { width: 100%; padding: 16px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; border: 2px solid #007bff; color: #333; background: #ffffff; }
+        
         button { width: 100%; padding: 14px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
-        .btn-next { background: #673ab7; color: white; margin-top: 10px; width: auto; min-width: 140px; float: right; padding: 10px 14px; font-size: 14px; border-radius: 6px; }
+        
+        /* Downsized Flash Cards Navigation Button realigned to Bottom Right */
+        .btn-next { background: #673ab7; color: white; margin-top: 15px; width: auto; min-width: 150px; float: right; padding: 10px 16px; font-size: 14px; border-radius: 6px; }
         .button-row { display: block; width: 100%; overflow: hidden; margin-top: 5px; }
-        .preview-box { background: #f0f7ff; text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; margin: 5px 0 12px 0; padding: 10px; border-radius: 8px; }
-        .result-box { margin-top: 12px; padding: 10px; border-radius: 8px; background: #eee; text-align: left; }
+        
+        /* Layout formatting systems for the live Pinyin text response tracking containers */
+        .preview-box { background: #f0f7ff; text-align: center; min-height: 55px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; margin: 8px 0 15px 0; padding: 10px; border-radius: 8px; border: 1px solid #d0e3ff; }
+        .result-box { margin-top: 15px; padding: 12px; border-radius: 8px; background: #eee; text-align: left; }
         .result-box h3 { margin: 0 0 8px 0; font-size: 16px; }
         .result-box p { margin: 8px 0 0 0; font-size: 15px; }
-        .toggle-container, .slider-container { margin: 10px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
+        
+        .toggle-container, .slider-container { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
         .slider-container { flex-direction: column; align-items: flex-start; gap: 3px; }
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
-        .char-column { display: inline-flex; flex-direction: column; align-items: center; margin: 0 8px; min-width: 45px; text-align: center; }
-        .top-char { font-size: 26px; font-weight: bold; height: 32px; line-height: 32px; color: #333; }
+        
+        /* Vertical structural alignment nodes to display the blue characters cleanly */
+        .char-column { display: inline-flex; flex-direction: column; align-items: center; margin: 4px 10px; min-width: 50px; text-align: center; }
+        
+        /* Upscaled 18px Bold Blue Hanyu Pinyin text styles wrapper */
         .pinyin-sub { font-size: 18px; color: #007bff; height: 22px; font-weight: bold; line-height: 22px; text-transform: lowercase; }
-        .chinese-char { font-size: 28px; font-weight: bold; }
+        
+        /* Verification box styling parameters */
+        .chinese-char { display: none; }
         .matched .pinyin-sub { color: #2e7d32; }
         .mismatched .pinyin-sub { color: #c62828; text-decoration: line-through; }
+        
+        /* Hide configuration switch rules */
         .hide-pinyin .pinyin-sub { visibility: hidden; }
     </style>
 </head>
@@ -38,15 +52,15 @@
 
 <div class="card">
     <h2>🇨🇳 Papa Big Chin Free Chinese Practise</h2>
-    <p style="margin: 5px 0 10px 0;">Type a phrase, listen, and repeat!</p>
+    <p style="margin: 5px 0 12px 0;">Type a phrase, listen, and repeat!</p>
     
-    <div class="input-wrapper">
-        <input type="text" id="targetText" placeholder="" value="老师好">
-        <div class="grid-overlay" id="textOverlay"></div>
-    </div>
+    <!-- Cleaned input text box interface area fields -->
+    <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)" value="老师好">
     
+    <!-- Clean, independent live Pinyin subtitle view container area block -->
     <div class="preview-box" id="livePreview"></div>
     
+    <!-- Speaking Speed Slider -->
     <div class="slider-container">
         <label for="speedSlider" style="font-weight: bold;">Teacher's Voice Speed:</label>
         <div class="slider-row">
@@ -65,19 +79,20 @@
     
     <div id="status" style="margin: 8px 0; color: #666; font-size: 14px;">Status: Ready</div>
     
+    <!-- Analysis Results -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
-        <div id="visualFeedback" style="text-align: center; background: white; padding: 8px; border-radius: 6px;"></div>
-        <p id="accuracyResult" style="font-weight: bold; text-align: center;"></p>
+        <div id="visualFeedback" style="text-align: center; background: white; padding: 10px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
+        <p id="accuracyResult" style="font-weight: bold; text-align: center; margin-top: 10px;"></p>
     </div>
 
+    <!-- Positioned Flash Cards Nav Action button block area layout -->
     <div class="button-row">
         <button class="btn-next" id="nextPageBtn">Flash Cards ➡️</button>
     </div>
 </div>
 <script>
     const targetTextInput = document.getElementById('targetText');
-    const textOverlay = document.getElementById('textOverlay');
     const livePreview = document.getElementById('livePreview');
     const listenBtn = document.getElementById('listenBtn');
     const recordBtn = document.getElementById('recordBtn');
@@ -90,46 +105,44 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
+    // Safe extraction of the global library reference logic paths
     const globalPinyinTool = pinyinPro.pinyin;
 
-    function createColumnElement(charText, pinyinText, isResultView, resultStyleClass) {
+    function createColumnElement(pinyinText, resultStyleClass) {
         const wrapper = document.createElement('div');
         wrapper.className = "char-column " + resultStyleClass;
+        
         const pNode = document.createElement('span');
         pNode.className = "pinyin-sub";
         pNode.innerText = pinyinText;
-        const cNode = document.createElement('span');
-        cNode.className = isResultView ? "chinese-char" : "top-char";
-        cNode.innerText = charText;
-        wrapper.appendChild(cNode);
+        
         wrapper.appendChild(pNode);
         return wrapper;
     }
 
     function syncInterfaceLayouts() {
-        const txt = targetTextInput.value;
-        textOverlay.innerHTML = "";
+        const txt = targetTextInput.value.trim();
         livePreview.innerHTML = "";
+        
         if (!txt) {
-            textOverlay.innerHTML = `<span style="color:#aaa; font-size:20px; font-weight:normal;">输入中文 (e.g. 老师好)</span>`;
             livePreview.innerText = "Waiting for input...";
             return;
         }
+
         if (pinyinToggle.checked) {
-            textOverlay.classList.remove('hide-pinyin');
             livePreview.classList.remove('hide-pinyin');
         } else {
-            textOverlay.classList.add('hide-pinyin');
             livePreview.classList.add('hide-pinyin');
         }
+
         const pinStr = globalPinyinTool(txt) || "";
         const pinArr = pinStr.split(" ");
+        
         let index = 0;
         while (index < txt.length) {
-            const currentChar = txt.charAt(index);
             const currentPinyin = pinArr[index] || "";
-            textOverlay.appendChild(createColumnElement(currentChar, currentPinyin, false, ""));
-            livePreview.appendChild(createColumnElement(currentChar, currentPinyin, false, ""));
+            const inputGridBlock = createColumnElement(currentPinyin, "");
+            livePreview.appendChild(inputGridBlock);
             index = index + 1;
         }
     }
@@ -139,7 +152,10 @@
     window.addEventListener('DOMContentLoaded', syncInterfaceLayouts);
 
     speedSlider.addEventListener('input', function() {
-        const labels = { "1": "Normal", "0.9": "Slower 10%", "0.8": "Slower 20%", "0.7": "Slower 30%", "0.6": "Slower 40%", "0.5": "Slower 50%" };
+        const labels = { 
+            "1": "Normal", "0.9": "Slower 10%", "0.8": "Slower 20%", 
+            "0.7": "Slower 30%", "0.6": "Slower 40%", "0.5": "Slower 50%" 
+        };
         speedLabel.innerText = labels[speedSlider.value] || "Normal";
     });
 
@@ -147,6 +163,7 @@
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
         window.speechSynthesis.cancel();
+        
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN'; 
         utterance.rate = parseFloat(speedSlider.value);
@@ -197,24 +214,28 @@
             const targetText = targetTextInput.value.trim();
             visualFeedback.innerHTML = "";
             resultDiv.style.display = "block";
+            
             if (pinyinToggle.checked) visualFeedback.classList.remove('hide-pinyin');
             else visualFeedback.classList.add('hide-pinyin');
+            
             let correctCount = 0;
             const targetPinyinStr = globalPinyinTool(targetText) || "";
             const targetPinyinArr = targetPinyinStr.split(" ");
             const heardPinyinStr = globalPinyinTool(heardText) || "";
             const heardPinyinArr = heardPinyinStr.split(" ");
+
             let evalIdx = 0;
             while (evalIdx < targetText.length) {
                 const tChar = targetText.charAt(evalIdx);
                 const tPin = targetPinyinArr[evalIdx] || "";
                 const hPin = heardPinyinArr[evalIdx] || "";
                 const hChar = heardText.charAt(evalIdx) || "❓";
+                
                 if (hChar === tChar || (tPin && tPin === hPin)) {
-                    visualFeedback.appendChild(createColumnElement("", tPin, true, "matched"));
+                    visualFeedback.appendChild(createColumnElement(tPin, "matched"));
                     correctCount = correctCount + 1;
                 } else {
-                    visualFeedback.appendChild(createColumnElement("", tPin, true, "mismatched"));
+                    visualFeedback.appendChild(createColumnElement(tPin, "mismatched"));
                 }
                 evalIdx = evalIdx + 1;
             }
