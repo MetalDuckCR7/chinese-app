@@ -4,62 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
-    <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
     <script src="https://unpkg.com/pinyin-pro"></script>
-
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
         .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
-        /* Larger font size and padding for the main Chinese input box */
         input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; }
-        
         button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
-        
-        /* Compact Flash Cards Navigation Button realigned to Bottom Right */
         .btn-next { background: #673ab7; color: white; margin-top: 10px; width: auto; min-width: 140px; float: right; padding: 10px 14px; font-size: 14px; border-radius: 6px; }
         .button-row { display: block; width: 100%; overflow: hidden; margin-top: 5px; }
-        
-        /* Tightened up spacing for feedback fields */
         .result-box, .preview-box { margin-top: 12px; padding: 10px; border-radius: 8px; background: #eee; text-align: left; }
         .preview-box { background: #f0f7ff; text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 5px; }
-        
         .result-box h3 { margin: 0 0 8px 0; font-size: 16px; }
         .result-box p { margin: 8px 0 0 0; font-size: 15px; }
-        
         .toggle-container, .slider-container { margin: 10px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
         .slider-container { flex-direction: column; align-items: flex-start; gap: 3px; }
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
-        
-        /* Optimized structural layout for characters. You can safely tweak font sizes right here: */
         .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 2px 4px; min-width: 30px; }
         .pinyin-sub { font-size: 18px; color: #007bff; font-weight: bold; }
         .chinese-char { font-size: 28px; font-weight: bold; display: block !important; }
-        
-        /* Result Colors */
         .matched .chinese-char { color: #2e7d32; }
         .mismatched .chinese-char { color: #c62828; text-decoration: line-through; }
-        
-        /* Hide class based on switch selection */
         .hide-pinyin .pinyin-sub { visibility: hidden; }
     </style>
 </head>
 <body>
-
 <div class="card">
-    <h2>🇨🇳 Papa Big Chin Free Chinese Practise</h2>
+    <h2>Papa Big Chin Free Chinese Practise</h2>
     <p style="margin: 5px 0 10px 0;">Type a phrase, listen, and repeat!</p>
-    
     <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)" value="老师好">
-    
-    <!-- Live Subtitle Preview Area (Shows subtitles instantly) -->
     <div class="preview-box" id="livePreview"></div>
-    
-    <!-- Speaking Speed Slider -->
     <div class="slider-container">
         <label for="speedSlider" style="font-weight: bold;">Teacher's Voice Speed:</label>
         <div class="slider-row">
@@ -67,25 +44,18 @@
             <span id="speedLabel" style="font-weight: bold; min-width: 70px; text-align: right;">Normal</span>
         </div>
     </div>
-    
     <div class="toggle-container">
         <label for="pinyinToggle" style="font-weight: bold; cursor: pointer;">Show Pinyin Subtitles</label>
         <input type="checkbox" id="pinyinToggle" checked style="width: auto; margin: 0; transform: scale(1.3); cursor: pointer;">
     </div>
-
     <button class="btn-listen" id="listenBtn">🔊 1. Listen to Teacher</button>
     <button class="btn-record" id="recordBtn">🎙️ 2. Press & Speak</button>
-    
     <div id="status" style="margin: 8px 0; color: #666; font-size: 14px;">Status: Ready</div>
-    
-    <!-- Analysis Results -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
         <div id="visualFeedback" style="text-align: center; background: white; padding: 8px; border-radius: 6px;"></div>
-        <p id="accuracyResult" style="font-weight: bold; text-align: center;"></p>
+        <p id="accuracyResult" style="font-weight: bold; text-align: center Papabigchin;"></p>
     </div>
-
-    <!-- Permanent Bottom Right Button Row Container Area -->
     <div class="button-row">
         <button class="btn-next" id="nextPageBtn">Flash Cards ➡️</button>
     </div>
@@ -104,7 +74,6 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
-    // Extract core global framework components directly to clear layout glitches
     const { pinyin } = pinyinPro;
 
     function createPairNode(charVal, pinyinVal, classVal) {
@@ -182,7 +151,6 @@
         window.speechSynthesis.speak(utterance);
     });
 
-    // Links out immediately to your standalone flashcards file page matching typed constraints
     nextPageBtn.addEventListener('click', function() {
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
@@ -212,9 +180,8 @@
             }
         });
 
-        // RESTORED ORIGINAL DATA PATH FROM YOUR WORKING BASELINE FILE CHARACTER-FOR-CHARACTER
         recognition.onresult = function(event) {
-            const resultText = event.results.transcript;
+            const resultText = event.results[0][0].transcript;
             analyzeSpeech(resultText);
         };
 
