@@ -173,10 +173,15 @@
         window.speechSynthesis.speak(utterance);
     });
 
+     // Update this specific block in your index.html file
     nextPageBtn.addEventListener('click', function() {
-        alert("Navigating to the next study page module placeholder...");
+        const text = targetTextInput.value.trim();
+        if (!text) return alert("Please enter a Chinese phrase first!");
+        
+        // Encodes the word securely and redirects to the flashcards page
+        window.location.href = "flashcards.html?words=" + encodeURIComponent(text);
     });
-
+    
     const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     if (!SpeechRecognition) {
         alert("Your tablet browser does not fully support free voice detection. Please use official Google Chrome.");
