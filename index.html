@@ -17,16 +17,17 @@
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
-        .result-box { margin-top: 20px; padding: 15px; border-radius: 8px; background: #eee; text-align: left; }
+        .result-box, .preview-box { margin-top: 20px; padding: 15px; border-radius: 8px; background: #eee; text-align: left; }
+        .preview-box { background: #f0f7ff; text-align: center; min-height: 70px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; }
         .toggle-container, .slider-container { margin: 15px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
         .slider-container { flex-direction: column; align-items: flex-start; gap: 5px; }
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
         /* Layout for display text with Pinyin subtitles above it */
-        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px; min-width: 30px; }
+        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 5px 6px; min-width: 35px; }
         .pinyin-sub { font-size: 16px; color: #007bff; height: 22px; font-weight: bold; }
-        .chinese-char { font-size: 28px; font-weight: bold; }
+        .chinese-char { font-size: 32px; font-weight: bold; }
         
         /* Result Colors */
         .matched .chinese-char { color: #2e7d32; }
@@ -42,7 +43,10 @@
     <h2>🇨🇳 Papa Big Chin Free Chinese Practise</h2>
     <p>Type a phrase, listen, and repeat!</p>
     
-    <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)">
+    <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)" value="老师好">
+    
+    <!-- Live Subtitle Preview Area (Shows subtitles instantly) -->
+    <div class="preview-box" id="livePreview"></div>
     
     <!-- Speaking Speed Slider -->
     <div class="slider-container">
@@ -70,9 +74,9 @@
         <p id="accuracyResult" style="font-weight: bold; margin-top: 15px;"></p>
     </div>
 </div>
-
 <script>
     const targetTextInput = document.getElementById('targetText');
+    const livePreview = document.getElementById('livePreview');
     const listenBtn = document.getElementById('listenBtn');
     const recordBtn = document.getElementById('recordBtn');
     const pinyinToggle = document.getElementById('pinyinToggle');
@@ -83,55 +87,89 @@
     const visualFeedback = document.getElementById('visualFeedback');
     const accuracyResult = document.getElementById('accuracyResult');
 
-    // Update speed label text when user moves slider
-    speedSlider.addEventListener('input', () => {
-        const val = parseFloat(speedSlider.value);
-        if (val === 1.0) speedLabel.innerText = "Normal";
-        else if (val === 0.9) speedLabel.innerText = "Slower 10%";
-        else if (val === 0.8) speedLabel.innerText = "Slower 20%";
-        else if (val === 0.7) speedLabel.innerText = "Slower 30%" ;
-        else if (val === 0.6) speedLabel.innerText = "Slower 40%";
-        else if (val === 0.5) speedLabel.innerText = "Slower 50%";
-    });
+    function createPairNode(charVal, pinyinVal, classVal) {
+        const d = document.createElement('div');
+        d.className = "char-pair " + classVal;
+        const p = document.createElement('span');
+        p.className = "pinyin-sub";
+        p.innerText = pinyinVal;
+        const c = document.createElement('span');
+        c.className = "chinese-char";
+        c.innerText = charVal;
+        d.appendChild(p);
+        d.appendChild(c);
+        return d;
+    }
 
-    // Toggle Pinyin viewing layout selection
-    pinyinToggle.addEventListener('change', () => {
+    function checkMatch(hc, tc, hp, tp) {
+        return (hc === tc || (tp && tp === hp));
+    }
+
+    function updateLivePreview() {
+        const txt = targetTextInput.value.trim();
+        livePreview.innerHTML = "";
+        if (!txt) {
+            livePreview.innerText = "Waiting for input...";
+            return;
+        }
+        if (pinyinToggle.checked) livePreview.classList.remove('hide-pinyin');
+        else livePreview.classList.add('hide-pinyin');
+        
+        const pinStr = pinyinPro.pinyin(txt) || "";
+        const pinArr = pinStr.split(" ");
+        
+        Array.from(txt).map(function(character, index) {
+            const currentPinyin = pinArr[index] || "";
+            const node = createPairNode(character, currentPinyin, "");
+            livePreview.appendChild(node);
+        });
+    }
+
+    targetTextInput.addEventListener('input', updateLivePreview);
+    
+    pinyinToggle.addEventListener('change', function() {
         if (pinyinToggle.checked) {
+            livePreview.classList.remove('hide-pinyin');
             visualFeedback.classList.remove('hide-pinyin');
         } else {
+            livePreview.classList.add('hide-pinyin');
             visualFeedback.classList.add('hide-pinyin');
         }
     });
 
-    // 1. Text-to-Speech (Audio Engine)
-    listenBtn.addEventListener('click', () => {
+    window.addEventListener('DOMContentLoaded', updateLivePreview);
+
+    speedSlider.addEventListener('input', function() {
+        const labels = {
+            "1": "Normal", "0.9": "Slower 10%", "0.8": "Slower 20%",
+            "0.7": "Slower 30%", "0.6": "Slower 40%", "0.5": "Slower 50%"
+        };
+        speedLabel.innerText = labels[speedSlider.value] || "Normal";
+    });
+
+    listenBtn.addEventListener('click', function() {
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
-        
         window.speechSynthesis.cancel();
-        
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN'; 
         utterance.rate = parseFloat(speedSlider.value);
-        
         window.speechSynthesis.speak(utterance);
     });
 
-    // 2. Free Speech Recognition Engine
     const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
     if (!SpeechRecognition) {
-        alert("Your tablet browser does not fully support free voice detection. Please make sure you are using official Google Chrome.");
+        alert("Your tablet browser does not fully support free voice detection. Please use official Google Chrome.");
     } else {
         const recognition = new SpeechRecognition();
         recognition.lang = 'zh-CN';
         recognition.interimResults = false;
         let isRecording = false;
 
-        recordBtn.addEventListener('click', () => {
+        recordBtn.addEventListener('click', function() {
             if (!isRecording) {
                 const text = targetTextInput.value.trim();
                 if (!text) return alert("Please enter the target phrase first!");
-                
                 recognition.start();
                 isRecording = true;
                 recordBtn.innerText = "🛑 Recording... Speak Now";
@@ -142,12 +180,11 @@
             }
         });
 
-        recognition.onresult = (event) => {
-            const resultText = event.results[0][0].transcript;
-            analyzeSpeech(resultText);
+        recognition.onresult = function(event) {
+            analyzeSpeech(event.results.transcript);
         };
 
-        recognition.onend = () => {
+        recognition.onend = function() {
             isRecording = false;
             recordBtn.innerText = "🎙️ 2. Press & Speak";
             recordBtn.classList.remove('recording');
@@ -158,44 +195,30 @@
             const targetText = targetTextInput.value.trim();
             visualFeedback.innerHTML = "";
             resultDiv.style.display = "block";
-
-            if (!pinyinToggle.checked) visualFeedback.classList.add('hide-pinyin');
-            else visualFeedback.classList.remove('hide-pinyin');
-
-            let correctCount = 0;
             
-            // Corrected Pinyin conversion library execution logic
-            const targetPinyinArray = pinyinPro.pinyin(targetText, { type: 'array' }) || [];
-            const heardPinyinArray = pinyinPro.pinyin(heardText, { type: 'array' }) || [];
+            if (pinyinToggle.checked) visualFeedback.classList.remove('hide-pinyin');
+            else visualFeedback.classList.add('hide-pinyin');
+            
+            let correctCount = 0;
+            const targetPinyinArr = (pinyinPro.pinyin(targetText) || "").split(" ");
+            const heardPinyinArr = (pinyinPro.pinyin(heardText) || "").split(" ");
 
-            for (let i = 0; i < targetText.length; i++) {
-                const pairDiv = document.createElement('div');
-                pairDiv.className = "char-pair";
-
-                const pinyinSub = document.createElement('span');
-                pinyinSub.className = "pinyin-sub";
+            Array.from(targetText).map(function(tChar, index) {
+                const tPin = targetPinyinArr[index] || "";
+                const hPin = heardPinyinArr[index] || "";
+                const hChar = heardText.charAt(index) || "❓";
+                const isWinner = checkMatch(hChar, tChar, hPin, tPin);
                 
-                const charSpan = document.createElement('span');
-                charSpan.className = "chinese-char";
-
-                if (heardText[i] === targetText[i] || (targetPinyinArray[i] && targetPinyinArray[i] === heardPinyinArray[i])) {
-                    pinyinSub.innerText = targetPinyinArray[i] || "";
-                    charSpan.innerText = targetText[i];
-                    pairDiv.className += " matched";
-                    correctCount++;
+                if (isWinner) {
+                    visualFeedback.appendChild(createPairNode(tChar, tPin, "matched"));
+                    correctCount = correctCount + 1;
                 } else {
-                    pinyinSub.innerText = targetPinyinArray[i] || "";
-                    charSpan.innerText = heardText[i] || "❓";
-                    pairDiv.className += " mismatched";
+                    visualFeedback.appendChild(createPairNode(hChar, tPin, "mismatched"));
                 }
+            });
 
-                pairDiv.appendChild(pinyinSub);
-                pairDiv.appendChild(charSpan);
-                visualFeedback.appendChild(pairDiv);
-            }
-
-            const percentage = Math.round((correctCount / targetText.length) * 100);
-            accuracyResult.innerText = `Match Score: ${percentage}% (${correctCount} of ${targetText.length} correct)`;
+            const score = Math.round((correctCount / targetText.length) * 100);
+            accuracyResult.innerText = "Match Score: " + score + "% (" + correctCount + " of " + targetText.length + " correct)";
         }
     }
 </script>
