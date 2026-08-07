@@ -67,19 +67,21 @@
     const complexPhrase = urlParams.get('words') || "老师好";
 
     // Split phrase into single characters and clean out spacing parameters
-    let rawArray = complexPhrase.replace(/\s+/g, '').split("");
+    let rawArray = complexPhrase.replace(/\s/g, '').split("");
     
-    // Map individual characters with their respective standalone pinyin markers securely
+    // Map individual characters safely without hidden script cutoff brackets
     let cardDeckData = [];
     let loadIdx = 0;
     while (loadIdx < rawArray.length) {
         const targetChar = rawArray[loadIdx];
         const generatedPinyin = globalPinyinTool(targetChar) || "";
-        cardDeckData.push({
-            character: targetChar,
-            pinyin: generatedPinyin,
-            isDone: false
-        });
+        
+        const cardObject = new Object();
+        cardObject.character = targetChar;
+        cardObject.pinyin = generatedPinyin;
+        cardObject.isDone = false;
+        
+        cardDeckData.push(cardObject);
         loadIdx = loadIdx + 1;
     }
 
@@ -132,7 +134,8 @@
             cardEl.appendChild(charSpan);
 
             cardEl.onclick = function() {
-                if (cardItem.isDone || activeCardIndex !== null) return;
+                if (cardItem.isDone) return;
+                if (activeCardIndex !== null) return;
                 triggerCardVoiceRecognition(currentIndexValue);
             };
 
@@ -153,11 +156,11 @@
     function triggerCardVoiceRecognition(targetIndex) {
         activeCardIndex = targetIndex;
         renderFlashCards();
-        deckStatus.innerText = "🎙 *Listening closely... Say:* " + cardDeckData[targetIndex].character;
+        deckStatus.innerText = "Listening closely... Say the card character aloud!";
 
         const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         if (!SpeechRecognition) {
-            alert("Vocal metrics engines aren't fully deployed on this browser flavor. Use native Google Chrome profiles.");
+            alert("Microphone processing is unavailable in this specific environment.");
             activeCardIndex = null;
             renderFlashCards();
             return;
@@ -170,23 +173,22 @@
         recognition.start();
 
         recognition.onresult = function(event) {
-            const speechText = event.results[0][0].transcript || "";
+            const speechText = event.results.transcript || "";
             const currentTarget = cardDeckData[targetIndex];
             
             const targetPinyin = currentTarget.pinyin;
             const heardPinyin = globalPinyinTool(speechText) || "";
 
-            // Evaluate if pronunciation string contains character glyph or maps tone phonetics
             if (speechText.includes(currentTarget.character) || (targetPinyin && heardPinyin.includes(targetPinyin))) {
                 currentTarget.isDone = true;
-                deckStatus.innerText = "🎯 Correct pronunciation recognized!";
+                deckStatus.innerText = "Correct pronunciation recognized!";
             } else {
-                deckStatus.innerText = "❌ That didn't match. Tap to try again!";
+                deckStatus.innerText = "That didn't match. Tap to try again!";
             }
         };
 
         recognition.onerror = function() {
-            deckStatus.innerText = "⚠️ Microphone alert. Let's tap to restart.";
+            deckStatus.innerText = "Microphone error detected. Let's tap to try again.";
         };
 
         recognition.onend = function() {
