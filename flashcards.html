@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chinese Flashcards</title>
-    <!-- 1. Import pinyin-pro library via CDN -->
-    <script src="https://unpkg.com/pinyin-pro"></script>
-     <style>
+    <!-- Import pinyin-pro library via CDN -->
+    <script src="https://unpkg.com"></script>
+    <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             background-color: #f5f7fb;
@@ -35,7 +35,6 @@
             text-align: center;
         }
 
-        /* Debug / Simulation Tool Panel */
         .test-panel {
             background: #eef2f7;
             padding: 8px 16px;
@@ -84,7 +83,6 @@
             cursor: pointer;
         }
 
-        /* Active recording animation */
         .card.recording {
             border-color: #e67e22 !important;
             animation: pulse 1.2s infinite;
@@ -96,19 +94,17 @@
             100% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); }
         }
 
-        /* Incorrect visual modifier */
         .card.incorrect {
             color: #e74c3c !important;
             border-color: #e74c3c !important;
             background-color: #fff5f5;
         }
 
-        /* Correct visual modifier */
         .card.correct {
             color: #2ecc71 !important;
             border-color: #2ecc71 !important;
             background-color: #f5fff7;
-            pointer-events: none; /* Block clicking again */
+            pointer-events: none; 
             box-shadow: none;
             transform: none !important;
         }
@@ -142,7 +138,6 @@
     <h1>Study Deck</h1>
     <div class="status-msg" id="statusMessage">Tap a card and speak the character clearly.</div>
 
-    <!-- Testing Mode Helper Box -->
     <div class="test-panel">
         <span>⚙️ <strong>Test Helper:</strong> If voice recognition fails, select a card then click:</span>
         <button onclick="simulateResult(true)">Force Success (Green)</button>
@@ -160,8 +155,8 @@
         let isListening = false;
         let lastClickedCard = null;
         let lastExpectedChar = "";
+        let recordingTimeout = null; // Safety track pointer
 
-        // Initialize Speech Recognition
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
@@ -174,9 +169,6 @@
 
         window.onload = function() {
             const container = document.getElementById('cardContainer');
-            const statusMsg = document.getElementById('statusMessage');
-            
-            // Testing string simulation
             const textInput = "老师您好"; 
 
             if (textInput) {
@@ -187,7 +179,7 @@
                     card.textContent = char;
                     
                     card.addEventListener('click', () => {
-                        handleCardClick(card, char, statusMsg);
+                        handleCardClick(card, char);
                     });
 
                     container.appendChild(card);
@@ -195,22 +187,38 @@
             }
         };
 
-        function handleCardClick(card, expectedChar, statusElement) {
+        function handleCardClick(card, expectedChar) {
             if (isListening || card.classList.contains('correct') || !recognition) return;
 
-            // Track state for the simulation buttons
+            // Clean up any stray timers left over
+            if (recordingTimeout) clearTimeout(recordingTimeout);
+
             lastClickedCard = card;
             lastExpectedChar = expectedChar;
-
             isListening = true;
-            card.className = 'card recording'; // Clear old red error colors while recording
+
+            const statusElement = document.getElementById('statusMessage');
+            card.className = 'card recording'; 
             statusElement.textContent = `Listening... Say "${expectedChar}" now.`;
             statusElement.style.color = "#e67e22";
 
             recognition.start();
 
+            // Safety net: Force stop recording if nothing happens after 4 seconds
+            recordingTimeout = setTimeout(() => {
+                if (isListening) {
+                    recognition.abort(); // Kill mic intake
+                    card.className = 'card incorrect';
+                    statusElement.textContent = "Speech timeout. No voice detected. Try again!";
+                    statusElement.style.color = "#e74c3c";
+                    isListening = false;
+                }
+            }, 4000);
+
             recognition.onresult = function(event) {
-                // FIXED CRITICAL SYNTAX ERROR HERE
+                clearTimeout(recordingTimeout); // Clear the safety timer immediately
+                
+                // FIXED DATA ARRAY ACCESS PATH
                 const spokenText = event.results[0][0].transcript.trim();
                 
                 const targetPinyin = pinyinPro.pinyin(expectedChar, { toneType: 'num' });
@@ -220,8 +228,9 @@
             };
 
             recognition.onerror = function(event) {
+                clearTimeout(recordingTimeout);
                 card.className = 'card';
-                statusElement.textContent = "Could not capture voice. Try the simulation test buttons above.";
+                statusElement.textContent = "Voice processing error. Click again to retry.";
                 statusElement.style.color = "#e74c3c";
                 isListening = false;
             };
@@ -246,30 +255,29 @@
             }
         }
 
-        // Helper function to test layouts instantly without microphone frustration
         function simulateResult(isCorrect) {
             if (!lastClickedCard) {
-                alert("Please click on a flashcard box first to select it before triggering a simulation.");
+                alert("Please click on a flashcard box first.");
                 return;
             }
             if (lastClickedCard.classList.contains('correct')) return;
 
-            const statusMsg = document.getElementById('statusMessage');
-            if (recognition) recognition.abort(); // Cancel real listener if active
+            if (recordingTimeout) clearTimeout(recordingTimeout);
+            if (recognition) recognition.abort(); 
+            
             lastClickedCard.classList.remove('recording');
             isListening = false;
+            const statusMsg = document.getElementById('statusMessage');
 
             if (isCorrect) {
-                lastClickedCard.classList.remove('incorrect');
-                lastClickedCard.classList.add('correct');
+                lastClickedCard.className = 'card correct';
                 statusMsg.textContent = `[Simulated] Correct tone for "${lastExpectedChar}"!`;
                 statusMsg.style.color = "#2ecc71";
             } else {
-                lastClickedCard.classList.add('incorrect');
-                statusMsg.textContent = `[Simulated] Incorrect tone for "${lastExpectedChar}". Card turned Red.`;
+                lastClickedCard.className = 'card incorrect';
+                statusMsg.textContent = `[Simulated] Incorrect tone for "${lastExpectedChar}".`;
                 statusMsg.style.color = "#e74c3c";
             }
         }
     </script>
 </body>
-</html>
