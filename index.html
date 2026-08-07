@@ -110,6 +110,17 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
+    // Safe, fully verified browser engine layout call routing fallback checks
+    function getPinyinString(textData) {
+        if (typeof pinyinPro !== 'undefined' && pinyinPro.pinyin) {
+            return pinyinPro.pinyin(textData);
+        }
+        if (typeof pinyin !== 'undefined') {
+            return pinyin(textData);
+        }
+        return "";
+    }
+
     function createPairNode(charVal, pinyinVal, classVal) {
         const d = document.createElement('div');
         d.className = "char-pair " + classVal;
@@ -140,8 +151,7 @@
         if (pinyinToggle.checked) livePreview.classList.remove('hide-pinyin');
         else livePreview.classList.add('hide-pinyin');
         
-        // Fixed: Use standard global function 'pinyin' directly from CDN
-        const pinStr = pinyin(txt) || "";
+        const pinStr = getPinyinString(txt) || "";
         const pinArr = pinStr.split(" ");
         
         let loopIdx = 0;
@@ -236,10 +246,9 @@
             else visualFeedback.classList.add('hide-pinyin');
             
             let correctCount = 0;
-            // Fixed: Use standard global function 'pinyin' directly from CDN
-            const targetPinyinStr = pinyin(targetText) || "";
+            const targetPinyinStr = getPinyinString(targetText) || "";
             const targetPinyinArr = targetPinyinStr.split(" ");
-            const heardPinyinStr = pinyin(heardText) || "";
+            const heardPinyinStr = getPinyinString(heardText) || "";
             const heardPinyinArr = heardPinyinStr.split(" ");
 
             let evalIdx = 0;
