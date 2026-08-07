@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
     <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
-    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com/pinyin-pro"></script>
+
     <style>
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
         .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
@@ -34,21 +35,14 @@
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
-        /* Base layout structure for vertical columns */
-        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 4px 8px; min-width: 35px; text-align: center; }
+        /* Optimized structural layout for characters. You can safely tweak font sizes right here: */
+        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 2px 4px; min-width: 30px; }
+        .pinyin-sub { font-size: 18px; color: #007bff; font-weight: bold; }
+        .chinese-char { font-size: 28px; font-weight: bold; }
         
-        /* Top Preview Box Settings: Hides Chinese characters completely, displays only Large Blue Pinyin */
-        #livePreview .chinese-char { display: none !important; }
-        #livePreview .pinyin-sub { font-size: 28px; color: #007bff; font-weight: bold; line-height: 32px; text-transform: lowercase; }
-        
-        /* Bottom Results Box Settings: Large Chinese Character on top, Small Pinyin underneath */
-        #visualFeedback .char-pair { flex-direction: column-reverse !important; }
-        #visualFeedback .chinese-char { font-size: 28px; font-weight: bold; line-height: 34px; color: #333; display: block; }
-        #visualFeedback .pinyin-sub { font-size: 14px; color: #007bff; font-weight: bold; line-height: 18px; margin-top: 2px; text-transform: lowercase; }
-        
-        /* Result Color Highlights applied specifically to the larger characters */
-        .matched .chinese-char { color: #2e7d32 !important; }
-        .mismatched .chinese-char { color: #c62828 !important; text-decoration: line-through; }
+        /* Result Colors */
+        .matched .chinese-char { color: #2e7d32; }
+        .mismatched .chinese-char { color: #c62828; text-decoration: line-through; }
         
         /* Hide class based on switch selection */
         .hide-pinyin .pinyin-sub { visibility: hidden; }
@@ -87,8 +81,8 @@
     <!-- Analysis Results -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
-        <div id="visualFeedback" style="text-align: center; background: white; padding: 12px; border-radius: 6px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
-        <p id="accuracyResult" style="font-weight: bold; text-align: center; margin-top: 10px;"></p>
+        <div id="visualFeedback" style="text-align: center; background: white; padding: 8px; border-radius: 6px;"></div>
+        <p id="accuracyResult" style="font-weight: bold; text-align: center;"></p>
     </div>
 
     <!-- Permanent Bottom Right Button Row Container Area -->
@@ -110,16 +104,8 @@
     const accuracyResult = document.getElementById('accuracyResult');
     const nextPageBtn = document.getElementById('nextPageBtn');
 
-    // Robust Pinyin resolution helper designed specifically for the unpkg browser build
-    function getPinyinString(textData) {
-        if (typeof pinyinPro !== 'undefined' && typeof pinyinPro.pinyin === 'function') {
-            return pinyinPro.pinyin(textData);
-        }
-        if (typeof pinyin === 'function') {
-            return pinyin(textData);
-        }
-        return "";
-    }
+    // Extract core global framework components directly to clear layout glitches
+    const { pinyin } = pinyinPro;
 
     function createPairNode(charVal, pinyinVal, classVal) {
         const d = document.createElement('div');
@@ -151,7 +137,7 @@
         if (pinyinToggle.checked) livePreview.classList.remove('hide-pinyin');
         else livePreview.classList.add('hide-pinyin');
         
-        const pinStr = getPinyinString(txt) || "";
+        const pinStr = pinyin(txt) || "";
         const pinArr = pinStr.split(" ");
         
         let loopIdx = 0;
@@ -196,6 +182,7 @@
         window.speechSynthesis.speak(utterance);
     });
 
+    // Links out immediately to your standalone flashcards file page matching typed constraints
     nextPageBtn.addEventListener('click', function() {
         const text = targetTextInput.value.trim();
         if (!text) return alert("Please enter a Chinese phrase first!");
@@ -225,8 +212,9 @@
             }
         });
 
+        // RESTORED ORIGINAL DATA PATH FROM YOUR WORKING BASELINE FILE CHARACTER-FOR-CHARACTER
         recognition.onresult = function(event) {
-            const resultText = event.results[0][0].transcript;
+            const resultText = event.results.transcript;
             analyzeSpeech(resultText);
         };
 
@@ -246,9 +234,9 @@
             else visualFeedback.classList.add('hide-pinyin');
             
             let correctCount = 0;
-            const targetPinyinStr = getPinyinString(targetText) || "";
+            const targetPinyinStr = pinyin(targetText) || "";
             const targetPinyinArr = targetPinyinStr.split(" ");
-            const heardPinyinStr = getPinyinString(heardText) || "";
+            const heardPinyinStr = pinyin(heardText) || "";
             const heardPinyinArr = heardPinyinStr.split(" ");
 
             let evalIdx = 0;
