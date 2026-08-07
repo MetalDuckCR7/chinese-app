@@ -10,7 +10,6 @@
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
         .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         
-        /* Spaced out text styling adjustments for the main Chinese character input block field */
         input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; letter-spacing: 6px; }
         
         button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -30,20 +29,21 @@
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
-        /* Rigid structural vertical block grid parameters */
-        .char-pair { display: inline-flex !important; flex-direction: column !important; align-items: center !important; margin: 4px 8px !important; min-width: 35px !important; text-align: center !important; }
+        .char-pair { display: inline-flex !important; flex-direction: column !important; align-items: center !important; margin: 2px 4px !important; min-width: 30px; }
         
-        /* TOP BOX FONTS: Blue alphabets 32px. Chinese character color matched to light-blue background container */
-        #livePreview .pinyin-sub { font-size: 32px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; }
-        #livePreview .chinese-char { font-size: 16px !important; font-weight: bold; display: block !important; visibility: visible !important; color: #f0f7ff !important; }
+        /* TOP BOX FONTS: Blue alphabets 32px, Chinese characters blend into the background container color */
+        #livePreview .pinyin-sub { font-size: 32px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible; }
+        #livePreview .chinese-char { font-size: 16px !important; font-weight: bold; display: block !important; color: #f0f7ff !important; }
         
-        /* BOTTOM BOX FONTS: Keeps your original working baseline character color properties visible */
-        #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible !important; }
-        #visualFeedback .chinese-char { font-size: 28px !important; font-weight: bold; display: block !important; visibility: visible !important; }
+        /* BOTTOM BOX FONTS: Large original characters on bottom layer */
+        #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible; }
+        #visualFeedback .chinese-char { font-size: 28px !important; font-weight: bold; display: block !important; }
         
-        /* Result Color Highlights applied specifically to the visible nodes */
+        /* Result Colors */
         .matched .chinese-char { color: #2e7d32 !important; }
         .mismatched .chinese-char { color: #c62828 !important; text-decoration: line-through !important; }
+        
+        /* FIXED: Applied specific, strong rule inheritance to toggle off the Pinyin syllables cleanly */
         .hide-pinyin .pinyin-sub { visibility: hidden !important; }
     </style>
 </head>
@@ -71,7 +71,7 @@
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
         <div id="visualFeedback" style="text-align: center; background: white; padding: 12px; border-radius: 6px; display: flex !important; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
-        <p id="accuracyResult" style="font-weight: bold; text-align: center;"></p>
+        <p id="accuracyResult" style="font-weight: bold; text-align: center Papabigchin;"></p>
     </div>
     <div class="button-row">
         <button class="btn-next" id="nextPageBtn">Flash Cards ➡️</button>
