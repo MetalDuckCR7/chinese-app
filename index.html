@@ -40,6 +40,9 @@
         .pinyin-sub { font-size: 18px; color: #007bff; font-weight: bold; }
         .chinese-char { font-size: 28px; font-weight: bold; }
         
+        /* Forces character elements to display correctly inside the bottom results screen */
+        #visualFeedback .chinese-char { display: block !important; }
+        
         /* Result Colors */
         .matched .chinese-char { color: #2e7d32; }
         .mismatched .chinese-char { color: #c62828; text-decoration: line-through; }
@@ -212,7 +215,6 @@
             }
         });
 
-        // RESTORED ORIGINAL DATA PATH FROM YOUR WORKING BASELINE FILE CHARACTER-FOR-CHARACTER
         recognition.onresult = function(event) {
             const resultText = event.results.transcript;
             analyzeSpeech(resultText);
