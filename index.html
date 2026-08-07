@@ -194,7 +194,7 @@
         });
 
         recognition.onresult = function(event) {
-            // Fixed correct object nested array path properties
+            // FIXED: Corrected multi-dimensional list mapping properties for web speech engine tracking arrays
             const resultText = event.results[0][0].transcript;
             analyzeSpeech(resultText);
         };
