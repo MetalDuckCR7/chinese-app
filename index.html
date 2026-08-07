@@ -133,6 +133,7 @@
         if (pinyinToggle.checked) livePreview.classList.remove('hide-pinyin');
         else livePreview.classList.add('hide-pinyin');
         
+        // Corrected browser script engine object access paths
         const pinStr = pinyinPro.pinyin(txt) || "";
         const pinArr = pinStr.split(" ");
         
@@ -228,6 +229,7 @@
             else visualFeedback.classList.add('hide-pinyin');
             
             let correctCount = 0;
+            // Corrected browser script engine object access paths
             const targetPinyinStr = pinyinPro.pinyin(targetText) || "";
             const targetPinyinArr = targetPinyinStr.split(" ");
             const heardPinyinStr = pinyinPro.pinyin(heardText) || "";
