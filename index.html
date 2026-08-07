@@ -5,29 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papa Big Chin Free Chinese Practise</title>
     <!-- Free external engine to convert Chinese characters to Pinyin automatically -->
-    <script src="https://unpkg.com/pinyin-pro"></script>
+    <script src="https://unpkg.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background: #fafafa; color: #333; }
-        .card { background: white; padding: 25px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         
         /* Larger font size and padding for the main Chinese input box */
-        input[type="text"] { width: 100%; padding: 18px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; }
         
-        button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button { width: 100%; padding: 14px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-listen { background: #4caf50; color: white; }
         .btn-record { background: #f44336; color: white; }
         .btn-record.recording { background: #ff9800; }
-        .result-box, .preview-box { margin-top: 20px; padding: 15px; border-radius: 8px; background: #eee; text-align: left; }
-        .preview-box { background: #f0f7ff; text-align: center; min-height: 70px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; }
-        .toggle-container, .slider-container { margin: 15px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
-        .slider-container { flex-direction: column; align-items: flex-start; gap: 5px; }
+        .btn-next { background: #673ab7; color: white; margin-top: 10px; width: 100%; }
+        
+        /* Tightened up spacing for feedback fields */
+        .result-box, .preview-box { margin-top: 12px; padding: 10px; border-radius: 8px; background: #eee; text-align: left; }
+        .preview-box { background: #f0f7ff; text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 5px; }
+        
+        .result-box h3 { margin: 0 0 8px 0; font-size: 16px; }
+        .result-box p { margin: 8px 0 0 0; font-size: 15px; }
+        
+        .toggle-container, .slider-container { margin: 10px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
+        .slider-container { flex-direction: column; align-items: flex-start; gap: 3px; }
         .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
         input[type="range"] { flex-grow: 1; cursor: pointer; }
         
-        /* Layout for display text with Pinyin subtitles above it */
-        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 5px 6px; min-width: 35px; }
-        .pinyin-sub { font-size: 16px; color: #007bff; height: 22px; font-weight: bold; }
-        .chinese-char { font-size: 32px; font-weight: bold; }
+        /* Optimized structural layout for characters. Smaller 12px Hanyu Pinyin height rules */
+        .char-pair { display: inline-flex; flex-direction: column; align-items: center; margin: 2px 4px; min-width: 30px; }
+        .pinyin-sub { font-size: 12px; color: #007bff; height: 16px; font-weight: bold; }
+        .chinese-char { font-size: 28px; font-weight: bold; }
         
         /* Result Colors */
         .matched .chinese-char { color: #2e7d32; }
@@ -41,7 +48,7 @@
 
 <div class="card">
     <h2>🇨🇳 Papa Big Chin Free Chinese Practise</h2>
-    <p>Type a phrase, listen, and repeat!</p>
+    <p style="margin: 5px 0 10px 0;">Type a phrase, listen, and repeat!</p>
     
     <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)" value="老师好">
     
@@ -65,13 +72,16 @@
     <button class="btn-listen" id="listenBtn">🔊 1. Listen to Teacher</button>
     <button class="btn-record" id="recordBtn">🎙️ 2. Press & Speak</button>
     
-    <div id="status" style="margin: 10px 0; color: #666;">Status: Ready</div>
+    <div id="status" style="margin: 8px 0; color: #666; font-size: 14px;">Status: Ready</div>
     
     <!-- Analysis Results -->
     <div class="result-box" id="resultDiv" style="display: none;">
         <h3>What the app heard:</h3>
-        <div id="visualFeedback"></div>
-        <p id="accuracyResult" style="font-weight: bold; margin-top: 15px;"></p>
+        <div id="visualFeedback" style="text-align: center; background: white; padding: 8px; border-radius: 6px;"></div>
+        <p id="accuracyResult" style="font-weight: bold; text-align: center;"></p>
+        
+        <!-- Compact Next Page Button Area -->
+        <button class="btn-next" id="nextPageBtn">➡️ Next Page</button>
     </div>
 </div>
 <script>
@@ -86,6 +96,7 @@
     const resultDiv = document.getElementById('resultDiv');
     const visualFeedback = document.getElementById('visualFeedback');
     const accuracyResult = document.getElementById('accuracyResult');
+    const nextPageBtn = document.getElementById('nextPageBtn');
 
     function createPairNode(charVal, pinyinVal, classVal) {
         const d = document.createElement('div');
@@ -162,7 +173,14 @@
         window.speechSynthesis.speak(utterance);
     });
 
-    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    // Custom operational link action for your Next Page Button
+    nextPageBtn.addEventListener('click', function() {
+        alert("Navigating to the next study page module placeholder...");
+        // Examples if you want to connect another page later:
+        // window.location.href = "https://github.io";
+    });
+
+    const SpeechRecognition = window.webkitSpeechRecognition || window.Recognition || window.SpeechRecognition;
     if (!SpeechRecognition) {
         alert("Your tablet browser does not fully support free voice detection. Please use official Google Chrome.");
     } else {
