@@ -149,12 +149,16 @@
     </div>
 
     <a href="index.html" class="back-btn">Go Back</a>
-        <script>
+         <script>
         let recognition;
         let isListening = false;
         let lastClickedCard = null;
         let lastExpectedChar = "";
         let recordingTimeout = null; 
+
+        // Queue system pointers to prevent asynchronous browser lockups
+        let queuedCard = null;
+        let queuedChar = null;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -168,7 +172,7 @@
                 isListening = false;
 
                 try {
-                    // FIX: Added [0] index to correctly extract the transcript string
+                    // FIXED: Correct array dimension lookup [0] to extract the text safely
                     const spokenText = event.results[event.resultIndex][0].transcript.trim();
                     const targetPinyin = pinyinPro.pinyin(lastExpectedChar, { toneType: 'num' });
                     const spokenPinyin = pinyinPro.pinyin(spokenText, { toneType: 'num' });
@@ -178,29 +182,40 @@
                 } catch (error) {
                     console.error("Error processing speech result:", error);
                     const statusElement = document.getElementById('statusMessage');
-                    statusElement.textContent = "Error reading speech. Try again.";
+                    statusElement.textContent = "Error reading speech channel. Please try again.";
                     statusElement.style.color = "#e74c3c";
                     resetActiveCardVisuals();
                 }
             };
 
             recognition.onerror = function(event) {
+                // Ignore benign internal aborted notifications caused by our queue system swapping cards
+                if (event.error === 'aborted') return;
+
                 if (recordingTimeout) clearTimeout(recordingTimeout);
                 resetActiveCardVisuals();
+                
                 const statusElement = document.getElementById('statusMessage');
-                
-                // Detailed error reporting to identify the exact cause
-                if (event.error === 'not-allowed') {
-                    statusElement.textContent = "Error: Microphone permission denied. Please allow mic access.";
-                } else if (event.error === 'no-speech') {
-                    statusElement.textContent = "Error: No speech detected. Speak louder or closer to the mic.";
-                } else if (event.error === 'network') {
-                    statusElement.textContent = "Error: Network issue. Web Speech API requires an internet connection.";
+                if (event.error === 'no-speech') {
+                    statusElement.textContent = "No voice detected. Speak closer to the microphone.";
                 } else {
-                    statusElement.textContent = `Voice Error (${event.error}). Try running this via a local server (like Live Server).`;
+                    statusElement.textContent = `Microphone state error (${event.error}). Click to retry.`;
                 }
-                
                 statusElement.style.color = "#e74c3c";
+            };
+
+            // Global close sequence coordinator
+            recognition.onend = function() {
+                resetActiveCardVisuals();
+
+                // If a card was clicked while another was listening, process it safely now
+                if (queuedCard && queuedChar) {
+                    const nextCard = queuedCard;
+                    const nextChar = queuedChar;
+                    queuedCard = null;
+                    queuedChar = null;
+                    startListeningSequence(nextCard, nextChar);
+                }
             };
         } else {
             document.getElementById('statusMessage').textContent = "Error: Browser Speech Recognition not supported.";
@@ -229,21 +244,32 @@
         function handleCardClick(card, expectedChar) {
             if (card.classList.contains('correct')) return;
 
-            const statusElement = document.getElementById('statusMessage');
-
-            if (isListening) {
-                try {
-                    if (recordingTimeout) clearTimeout(recordingTimeout);
-                    recognition.abort(); 
-                } catch(e) {}
+            // If clicking the card that is already listening, turn it off cleanly
+            if (lastClickedCard === card && isListening) {
+                if (recordingTimeout) clearTimeout(recordingTimeout);
+                recognition.abort();
+                return;
             }
 
-            resetActiveCardVisuals();
+            // If the microphone is active elsewhere, queue this card and wait for the engine to close
+            if (isListening) {
+                queuedCard = card;
+                queuedChar = expectedChar;
+                if (recordingTimeout) clearTimeout(recordingTimeout);
+                recognition.abort(); 
+                return;
+            }
 
+            // Otherwise, fire up immediately
+            startListeningSequence(card, expectedChar);
+        }
+
+        function startListeningSequence(card, expectedChar) {
             lastClickedCard = card;
             lastExpectedChar = expectedChar;
             isListening = true;
 
+            const statusElement = document.getElementById('statusMessage');
             card.className = 'card recording'; 
             statusElement.textContent = `Listening... Say "${expectedChar}" now.`;
             statusElement.style.color = "#e67e22";
@@ -251,6 +277,7 @@
             try {
                 recognition.start();
 
+                // Clean safety cutoff implementation
                 recordingTimeout = setTimeout(() => {
                     if (isListening) {
                         try { recognition.abort(); } catch(e){}
@@ -261,9 +288,8 @@
                     }
                 }, 4000);
             } catch (err) {
+                console.log("Ignored concurrent ignition request block");
                 card.className = 'card';
-                statusElement.textContent = "Engine busy. Tap card again to retry.";
-                statusElement.style.color = "#e74c3c";
                 isListening = false;
             }
         }
@@ -298,6 +324,8 @@
             if (lastClickedCard.classList.contains('correct')) return;
 
             if (recordingTimeout) clearTimeout(recordingTimeout);
+            queuedCard = null;
+            queuedChar = null;
             if (recognition) {
                 try { recognition.abort(); } catch(e){}
             }
