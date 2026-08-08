@@ -170,7 +170,7 @@
             recognition.onresult = function(event) {
                 if (recordingTimeout) clearTimeout(recordingTimeout);
                 isListening = false;
-
+                recognition.abort();
                 try {
                     // FIXED: Correct array dimension lookup [0] to extract the text safely
                     const spokenText = event.results[event.resultIndex][0].transcript.trim();
@@ -223,7 +223,7 @@
 
         window.onload = function() {
             const container = document.getElementById('cardContainer');
-            const textInput = "老师您好"; 
+            const textInput = "老师您好好好好好好"; 
 
             if (textInput) {
                 const characters = textInput.replace(/\s+/g, '').split('');
@@ -285,6 +285,7 @@
                         statusElement.textContent = "Speech timeout. No voice detected. Try again!";
                         statusElement.style.color = "#e74c3c";
                         isListening = false;
+                        recognition.abort();
                     }
                 }, 4000);
             } catch (err) {
