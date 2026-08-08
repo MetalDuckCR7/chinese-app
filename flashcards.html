@@ -149,7 +149,7 @@
     </div>
 
     <a href="index.html" class="back-btn">Go Back</a>
-    <script>
+     <script>
         let recognition;
         let isListening = false;
         let lastClickedCard = null;
@@ -167,8 +167,7 @@
                 if (recordingTimeout) clearTimeout(recordingTimeout);
                 isListening = false;
 
-                // Fixed transcript array retrieval parameters
-                const spokenText = event.results[event.resultIndex][0].transcript.trim();
+                const spokenText = event.results[event.resultIndex].transcript.trim();
                 const targetPinyin = pinyinPro.pinyin(lastExpectedChar, { toneType: 'num' });
                 const spokenPinyin = pinyinPro.pinyin(spokenText, { toneType: 'num' });
                 const statusElement = document.getElementById('statusMessage');
@@ -206,7 +205,7 @@
                         handleCardClick(card, char);
                     });
 
-                    container.appendChild(char);
+                    // FIX: Removed the broken container.appendChild(char) line
                     container.appendChild(card);
                 });
             }
