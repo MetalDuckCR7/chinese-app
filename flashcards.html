@@ -149,13 +149,12 @@
     </div>
 
     <a href="index.html" class="back-btn">Go Back</a>
-
     <script>
         let recognition;
         let isListening = false;
         let lastClickedCard = null;
         let lastExpectedChar = "";
-        let recordingTimeout = null; // Safety track pointer
+        let recordingTimeout = null; 
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -163,6 +162,31 @@
             recognition.lang = 'zh-CN'; 
             recognition.continuous = false;
             recognition.interimResults = false;
+
+            recognition.onresult = function(event) {
+                if (recordingTimeout) clearTimeout(recordingTimeout);
+                isListening = false;
+
+                // Fixed transcript array retrieval parameters
+                const spokenText = event.results[event.resultIndex][0].transcript.trim();
+                const targetPinyin = pinyinPro.pinyin(lastExpectedChar, { toneType: 'num' });
+                const spokenPinyin = pinyinPro.pinyin(spokenText, { toneType: 'num' });
+                const statusElement = document.getElementById('statusMessage');
+
+                evaluatePronunciation(lastClickedCard, spokenText, spokenPinyin, targetPinyin, lastExpectedChar, statusElement);
+            };
+
+            recognition.onerror = function(event) {
+                if (recordingTimeout) clearTimeout(recordingTimeout);
+                resetActiveCardVisuals();
+                const statusElement = document.getElementById('statusMessage');
+                statusElement.textContent = "Voice processing error or silence. Click to try again.";
+                statusElement.style.color = "#e74c3c";
+            };
+
+            recognition.onend = function() {
+                resetActiveCardVisuals();
+            };
         } else {
             document.getElementById('statusMessage').textContent = "Error: Browser Speech Recognition not supported.";
         }
@@ -182,76 +206,73 @@
                         handleCardClick(card, char);
                     });
 
+                    container.appendChild(char);
                     container.appendChild(card);
                 });
             }
         };
 
         function handleCardClick(card, expectedChar) {
-            if (isListening || card.classList.contains('correct') || !recognition) return;
+            if (card.classList.contains('correct')) return;
 
-            // Clean up any stray timers left over
-            if (recordingTimeout) clearTimeout(recordingTimeout);
+            const statusElement = document.getElementById('statusMessage');
+
+            if (isListening) {
+                try {
+                    if (recordingTimeout) clearTimeout(recordingTimeout);
+                    recognition.abort(); 
+                } catch(e) {}
+            }
+
+            resetActiveCardVisuals();
 
             lastClickedCard = card;
             lastExpectedChar = expectedChar;
             isListening = true;
 
-            const statusElement = document.getElementById('statusMessage');
             card.className = 'card recording'; 
             statusElement.textContent = `Listening... Say "${expectedChar}" now.`;
             statusElement.style.color = "#e67e22";
 
-            recognition.start();
+            try {
+                recognition.start();
 
-            // Safety net: Force stop recording if nothing happens after 4 seconds
-            recordingTimeout = setTimeout(() => {
-                if (isListening) {
-                    recognition.abort(); // Kill mic intake
-                    card.className = 'card incorrect';
-                    statusElement.textContent = "Speech timeout. No voice detected. Try again!";
-                    statusElement.style.color = "#e74c3c";
-                    isListening = false;
-                }
-            }, 4000);
-
-            recognition.onresult = function(event) {
-                clearTimeout(recordingTimeout); // Clear the safety timer immediately
-                
-                // FIXED DATA ARRAY ACCESS PATH
-                const spokenText = event.results[0][0].transcript.trim();
-                
-                const targetPinyin = pinyinPro.pinyin(expectedChar, { toneType: 'num' });
-                const spokenPinyin = pinyinPro.pinyin(spokenText, { toneType: 'num' });
-
-                evaluatePronunciation(card, spokenText, spokenPinyin, targetPinyin, expectedChar, statusElement);
-            };
-
-            recognition.onerror = function(event) {
-                clearTimeout(recordingTimeout);
+                recordingTimeout = setTimeout(() => {
+                    if (isListening) {
+                        try { recognition.abort(); } catch(e){}
+                        card.className = 'card incorrect';
+                        statusElement.textContent = "Speech timeout. No voice detected. Try again!";
+                        statusElement.style.color = "#e74c3c";
+                        isListening = false;
+                    }
+                }, 4000);
+            } catch (err) {
                 card.className = 'card';
-                statusElement.textContent = "Voice processing error. Click again to retry.";
+                statusElement.textContent = "Engine busy. Tap card again to retry.";
                 statusElement.style.color = "#e74c3c";
                 isListening = false;
-            };
-
-            recognition.onend = function() {
-                isListening = false;
-            };
+            }
         }
 
         function evaluatePronunciation(card, spokenText, spokenPinyin, targetPinyin, expectedChar, statusElement) {
+            if (!card) return;
             card.classList.remove('recording');
 
             if (spokenPinyin === targetPinyin || spokenText.includes(expectedChar)) {
-                card.classList.remove('incorrect');
-                card.classList.add('correct');
+                card.className = 'card correct';
                 statusElement.textContent = `Excellent! Match found ("${spokenText}" -> ${targetPinyin})`;
                 statusElement.style.color = "#2ecc71";
             } else {
-                card.classList.add('incorrect');
+                card.className = 'card incorrect';
                 statusElement.textContent = `Incorrect tone. Heard: "${spokenText}" (${spokenPinyin}). Try again!`;
                 statusElement.style.color = "#e74c3c";
+            }
+        }
+
+        function resetActiveCardVisuals() {
+            isListening = false;
+            if (lastClickedCard && !lastClickedCard.classList.contains('correct') && !lastClickedCard.classList.contains('incorrect')) {
+                lastClickedCard.className = 'card';
             }
         }
 
@@ -263,9 +284,10 @@
             if (lastClickedCard.classList.contains('correct')) return;
 
             if (recordingTimeout) clearTimeout(recordingTimeout);
-            if (recognition) recognition.abort(); 
+            if (recognition) {
+                try { recognition.abort(); } catch(e){}
+            }
             
-            lastClickedCard.classList.remove('recording');
             isListening = false;
             const statusMsg = document.getElementById('statusMessage');
 
@@ -281,3 +303,4 @@
         }
     </script>
 </body>
+</html>
