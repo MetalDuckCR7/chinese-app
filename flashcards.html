@@ -149,12 +149,13 @@
     </div>
 
     <a href="index.html" class="back-btn">Go Back</a>
-         <script>
+    <script>
         let recognition;
         let isListening = false;
         let lastClickedCard = null;
         let lastExpectedChar = "";
         let recordingTimeout = null; 
+        let startupDelayTimeout = null; // Track the new delay buffer pointer
 
         // Queue system pointers to prevent asynchronous browser lockups
         let queuedCard = null;
@@ -170,9 +171,8 @@
             recognition.onresult = function(event) {
                 if (recordingTimeout) clearTimeout(recordingTimeout);
                 isListening = false;
-                recognition.abort();
+
                 try {
-                    // FIXED: Correct array dimension lookup [0] to extract the text safely
                     const spokenText = event.results[event.resultIndex][0].transcript.trim();
                     const targetPinyin = pinyinPro.pinyin(lastExpectedChar, { toneType: 'num' });
                     const spokenPinyin = pinyinPro.pinyin(spokenText, { toneType: 'num' });
@@ -189,10 +189,10 @@
             };
 
             recognition.onerror = function(event) {
-                // Ignore benign internal aborted notifications caused by our queue system swapping cards
                 if (event.error === 'aborted') return;
 
                 if (recordingTimeout) clearTimeout(recordingTimeout);
+                if (startupDelayTimeout) clearTimeout(startupDelayTimeout);
                 resetActiveCardVisuals();
                 
                 const statusElement = document.getElementById('statusMessage');
@@ -204,11 +204,9 @@
                 statusElement.style.color = "#e74c3c";
             };
 
-            // Global close sequence coordinator
             recognition.onend = function() {
                 resetActiveCardVisuals();
 
-                // If a card was clicked while another was listening, process it safely now
                 if (queuedCard && queuedChar) {
                     const nextCard = queuedCard;
                     const nextChar = queuedChar;
@@ -223,7 +221,7 @@
 
         window.onload = function() {
             const container = document.getElementById('cardContainer');
-            const textInput = "老师您好好好好好好"; 
+            const textInput = "老师您好"; 
 
             if (textInput) {
                 const characters = textInput.replace(/\s+/g, '').split('');
@@ -244,14 +242,15 @@
         function handleCardClick(card, expectedChar) {
             if (card.classList.contains('correct')) return;
 
-            // If clicking the card that is already listening, turn it off cleanly
+            // Clear any pending delayed startup timers immediately
+            if (startupDelayTimeout) clearTimeout(startupDelayTimeout);
+
             if (lastClickedCard === card && isListening) {
                 if (recordingTimeout) clearTimeout(recordingTimeout);
                 recognition.abort();
                 return;
             }
 
-            // If the microphone is active elsewhere, queue this card and wait for the engine to close
             if (isListening) {
                 queuedCard = card;
                 queuedChar = expectedChar;
@@ -260,7 +259,6 @@
                 return;
             }
 
-            // Otherwise, fire up immediately
             startListeningSequence(card, expectedChar);
         }
 
@@ -271,28 +269,35 @@
 
             const statusElement = document.getElementById('statusMessage');
             card.className = 'card recording'; 
-            statusElement.textContent = `Listening... Say "${expectedChar}" now.`;
+            statusElement.textContent = "Preparing audio channel...";
             statusElement.style.color = "#e67e22";
 
-            try {
-                recognition.start();
+            // INTENTIONAL DELAY: Wait 500ms for browser engine hardware to settle completely
+            startupDelayTimeout = setTimeout(() => {
+                // Safety guard in case user switched cards or exited during the half-second delay
+                if (lastClickedCard !== card || !isListening) return;
 
-                // Clean safety cutoff implementation
-                recordingTimeout = setTimeout(() => {
-                    if (isListening) {
-                        try { recognition.abort(); } catch(e){}
-                        card.className = 'card incorrect';
-                        statusElement.textContent = "Speech timeout. No voice detected. Try again!";
-                        statusElement.style.color = "#e74c3c";
-                        isListening = false;
-                        recognition.abort();
-                    }
-                }, 4000);
-            } catch (err) {
-                console.log("Ignored concurrent ignition request block");
-                card.className = 'card';
-                isListening = false;
-            }
+                statusElement.textContent = `Listening... Say "${expectedChar}" now.`;
+
+                try {
+                    recognition.start();
+
+                    // Timeout safety cutoff starts tracking ONLY after engine initializes active intake
+                    recordingTimeout = setTimeout(() => {
+                        if (isListening && lastClickedCard === card) {
+                            try { recognition.abort(); } catch(e){}
+                            card.className = 'card incorrect';
+                            statusElement.textContent = "Speech timeout. No voice detected. Try again!";
+                            statusElement.style.color = "#e74c3c";
+                            isListening = false;
+                        }
+                    }, 4000);
+                } catch (err) {
+                    console.log("Ignored asynchronous state lock conflict");
+                    card.className = 'card';
+                    isListening = false;
+                }
+            }, 500);
         }
 
         function evaluatePronunciation(card, spokenText, spokenPinyin, targetPinyin, expectedChar, statusElement) {
@@ -325,6 +330,7 @@
             if (lastClickedCard.classList.contains('correct')) return;
 
             if (recordingTimeout) clearTimeout(recordingTimeout);
+            if (startupDelayTimeout) clearTimeout(startupDelayTimeout);
             queuedCard = null;
             queuedChar = null;
             if (recognition) {
