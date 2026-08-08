@@ -188,12 +188,19 @@
                 if (recordingTimeout) clearTimeout(recordingTimeout);
                 resetActiveCardVisuals();
                 const statusElement = document.getElementById('statusMessage');
-                statusElement.textContent = "Voice processing error or silence. Click to try again.";
+                
+                // Detailed error reporting to identify the exact cause
+                if (event.error === 'not-allowed') {
+                    statusElement.textContent = "Error: Microphone permission denied. Please allow mic access.";
+                } else if (event.error === 'no-speech') {
+                    statusElement.textContent = "Error: No speech detected. Speak louder or closer to the mic.";
+                } else if (event.error === 'network') {
+                    statusElement.textContent = "Error: Network issue. Web Speech API requires an internet connection.";
+                } else {
+                    statusElement.textContent = `Voice Error (${event.error}). Try running this via a local server (like Live Server).`;
+                }
+                
                 statusElement.style.color = "#e74c3c";
-            };
-
-            recognition.onend = function() {
-                resetActiveCardVisuals();
             };
         } else {
             document.getElementById('statusMessage').textContent = "Error: Browser Speech Recognition not supported.";
