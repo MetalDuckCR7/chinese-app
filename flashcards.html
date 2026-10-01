@@ -59,7 +59,7 @@
     
     // Read the query parameters string or look up default test text variables
     const urlParams = new URLSearchParams(window.location.search);
-    const originalPhrase = (urlParams.get('words') || "老师好").trim();
+    const originalPhrase = (urlParams.get('words') || "").trim();
     
     if (!originalPhrase) {
         container.innerText = "No phrase provided. Please return to the homepage.";
