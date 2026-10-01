@@ -10,6 +10,14 @@
         body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
         .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         
+        /* Stylings for the new phrases container and its fields */
+        .phrases-container { margin-bottom: 20px; padding: 12px; background: #fdfdfd; border: 1px dashed #ccc; border-radius: 8px; text-align: left; }
+        .phrases-title { font-weight: bold; font-size: 14px; color: #555; margin: 0 0 10px 0; }
+        .phrase-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .phrase-row:last-child { margin-bottom: 0; }
+        .phrase-row input[type="text"] { flex-grow: 1; padding: 8px; border-radius: 6px; font-size: 16px; border: 1px solid #ccc; text-align: left; font-weight: normal; margin: 0; width: auto; }
+        .btn-copy { width: auto; padding: 8px 12px; margin: 0; font-size: 13px; background: #007bff; color: white; border-radius: 6px; white-space: nowrap; }
+        .btn-copy:hover { background: #0056b3; }
         input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; letter-spacing: 6px; }
         
         button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -51,6 +59,30 @@
 <div class="card">
     <h2>Papa Big Chin Free Chinese Practise</h2>
     <p style="margin: 5px 0 10px 0;">Type a phrase, listen, and repeat!</p>
+    <!-- Custom Pre-saved Phrases Section -->
+<div class="phrases-container">
+    <p class="phrases-title">Quick Phrases Setup:</p>
+    <div class="phrase-row">
+        <input type="text" id="phrase1" placeholder="Phrase 1 (e.g. 你好)" value="你好">
+        <button class="btn-copy" onclick="copyToMain('phrase1')">Copy & Paste</button>
+    </div>
+    <div class="phrase-row">
+        <input type="text" id="phrase2" placeholder="Phrase 2 (e.g. 谢谢)" value="谢谢">
+        <button class="btn-copy" onclick="copyToMain('phrase2')">Copy & Paste</button>
+    </div>
+    <div class="phrase-row">
+        <input type="text" id="phrase3" placeholder="Phrase 3 (e.g. 再见)" value="再见">
+        <button class="btn-copy" onclick="copyToMain('phrase3')">Copy & Paste</button>
+    </div>
+    <div class="phrase-row">
+        <input type="text" id="phrase4" placeholder="Phrase 4 (e.g. 对不起)" value="对不起">
+        <button class="btn-copy" onclick="copyToMain('phrase4')">Copy & Paste</button>
+    </div>
+    <div class="phrase-row">
+        <input type="text" id="phrase5" placeholder="Phrase 5 (e.g. 没关系)" value="没关系">
+        <button class="btn-copy" onclick="copyToMain('phrase5')">Copy & Paste</button>
+    </div>
+</div>
     <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)" value="老师好">
     <div class="preview-box" id="livePreview"></div>
     <div class="slider-container">
@@ -92,7 +124,15 @@
     const nextPageBtn = document.getElementById('nextPageBtn');
 
     const { pinyin } = pinyinPro;
-
+    // Custom helper function to handle the copy & paste routing
+    window.copyToMain = function(phraseId) {
+    const phraseInput = document.getElementById(phraseId);
+    if (phraseInput) {
+        targetTextInput.value = phraseInput.value;
+        // Instantly update the Pinyin presentation preview layout
+        updateLivePreview();
+    }
+};
     function createPairNode(charVal, pinyinVal, classVal) {
         const d = document.createElement('div');
         d.className = "char-pair " + classVal;
