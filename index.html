@@ -3,287 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Papa Big Chin Free Chinese Practise</title>
-    <!-- /pinyin-pro -->
-    <script src="https://unpkg.com/pinyin-pro"></script>
+    <title>Papa Big Chin Virtual Lessons</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 15px; text-align: center; background: #fafafa; color: #333; }
-        .card { background: white; padding: 20px; border-radius: 16px; max-width: 500px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
-        /* Stylings for the new phrases container and its fields */
-        .phrases-container { margin-bottom: 20px; padding: 12px; background: #fdfdfd; border: 1px dashed #ccc; border-radius: 8px; text-align: left; }
-        .phrases-title { font-weight: bold; font-size: 14px; color: #555; margin: 0 0 10px 0; }
-        .phrase-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .phrase-row:last-child { margin-bottom: 0; }
-        .phrase-row input[type="text"] { flex-grow: 1; padding: 8px; border-radius: 6px; font-size: 16px; border: 1px solid #ccc; text-align: left; font-weight: normal; margin: 0; width: auto; }
-        .btn-copy { width: auto; padding: 8px 12px; margin: 0; font-size: 13px; background: #007bff; color: white; border-radius: 6px; white-space: nowrap; }
-        .btn-copy:hover { background: #0056b3; }
-        input[type="text"] { width: 100%; padding: 16px; margin: 6px 0; border-radius: 8px; box-sizing: border-box; font-size: 26px; text-align: center; font-weight: bold; letter-spacing: 6px; }
-        
-        button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; box-sizing: border-box; font-size: 16px; font-weight: bold; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-listen { background: #4caf50; color: white; }
-        .btn-record { background: #f44336; color: white; }
-        .btn-record.recording { background: #ff9800; }
-        .btn-next { background: #673ab7; color: white; margin-top: 10px; width: auto; min-width: 140px; float: right; padding: 10px 14px; font-size: 14px; border-radius: 6px; }
-        .button-row { display: block; width: 100%; overflow: hidden; margin-top: 5px; }
-        
-        .result-box, .preview-box { margin-top: 12px; padding: 10px; border-radius: 8px; background: #eee; text-align: left; }
-        .preview-box { background: #f0f7ff; text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 5px; }
-        .result-box h3 { margin: 0 0 8px 0; font-size: 16px; }
-        .result-box p { margin: 8px 0 0 0; font-size: 15px; }
-        
-        .toggle-container, .slider-container { margin: 10px 0; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
-        .slider-container { flex-direction: column; align-items: flex-start; gap: 3px; }
-        .slider-row { display: flex; width: 100%; align-items: center; gap: 10px; }
-        input[type="range"] { flex-grow: 1; cursor: pointer; }
-        
-        .char-pair { display: inline-flex !important; flex-direction: column !important; align-items: center !important; margin: 2px 4px !important; min-width: 30px; }
-        
-        /* TOP BOX FONTS: Blue alphabets 32px, Chinese characters blend into the background container color */
-        #livePreview .pinyin-sub { font-size: 32px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible; }
-        #livePreview .chinese-char { font-size: 16px !important; font-weight: bold; display: block !important; color: #f0f7ff !important; }
-        
-        /* BOTTOM BOX FONTS: Large original characters on bottom layer */
-        #visualFeedback .pinyin-sub { font-size: 18px !important; color: #007bff; font-weight: bold; display: block !important; visibility: visible; }
-        #visualFeedback .chinese-char { font-size: 28px !important; font-weight: bold; display: block !important; }
-        
-        /* Result Colors */
-        .matched .chinese-char { color: #2e7d32 !important; }
-        .mismatched .chinese-char { color: #c62828 !important; text-decoration: line-through !important; }
-        
-        /* FIXED: Applied specific, strong rule inheritance to toggle off the Pinyin syllables cleanly */
-        .hide-pinyin .pinyin-sub { visibility: hidden !important; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .lesson-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lesson-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        .lesson-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
-<div class="card">
-    <h2>Papa Big Chin Free Chinese Practise</h2>
-    <p style="margin: 5px 0 10px 0;">Type a phrase, listen, and repeat!</p>
-    <!-- Custom Pre-saved Phrases Section -->
-<div class="phrases-container">
-    <p class="phrases-title">Quick Phrases Setup:</p>
-    <div class="phrase-row">
-        <input type="text" id="phrase1" placeholder="Phrase 1 (e.g. 你好)" value="你好">
-        <button class="btn-copy" onclick="copyToMain('phrase1')">Copy & Paste</button>
-    </div>
-    <div class="phrase-row">
-        <input type="text" id="phrase2" placeholder="Phrase 2 (e.g. 谢谢)" value="谢谢">
-        <button class="btn-copy" onclick="copyToMain('phrase2')">Copy & Paste</button>
-    </div>
-    <div class="phrase-row">
-        <input type="text" id="phrase3" placeholder="Phrase 3 (e.g. 再见)" value="再见">
-        <button class="btn-copy" onclick="copyToMain('phrase3')">Copy & Paste</button>
-    </div>
-    <div class="phrase-row">
-        <input type="text" id="phrase4" placeholder="Phrase 4 (e.g. 对不起)" value="对不起">
-        <button class="btn-copy" onclick="copyToMain('phrase4')">Copy & Paste</button>
-    </div>
-    <div class="phrase-row">
-        <input type="text" id="phrase5" placeholder="Phrase 5 (e.g. 没关系)" value="没关系">
-        <button class="btn-copy" onclick="copyToMain('phrase5')">Copy & Paste</button>
-    </div>
-</div>
-    <input type="text" id="targetText" placeholder="输入中文 (e.g. 老师好)" value="老师好">
-    <div class="preview-box" id="livePreview"></div>
-    <div class="slider-container">
-        <label for="speedSlider" style="font-weight: bold;">Teacher's Voice Speed:</label>
-        <div class="slider-row">
-            <input type="range" id="speedSlider" min="0.5" max="1.0" step="0.1" value="1.0">
-            <span id="speedLabel" style="font-weight: bold; min-width: 70px; text-align: right;">Normal</span>
+
+    <div class="container">
+        <h1>Papa Big Chin Virtual Lessons</h1>
+        
+        <div class="button-grid">
+            <!-- These buttons will look for files named chinese.html, science.html, etc. in the same folder -->
+            <a href="chinese.html" class="lesson-btn">Chinese</a>
+            <a href="bahasa-melayu.html" class="lesson-btn">Bahasa Melayu</a>
+            <a href="maths.html" class="lesson-btn">Maths</a>
+            <a href="science.html" class="lesson-btn">Science</a>
         </div>
     </div>
-    <div class="toggle-container">
-        <label for="pinyinToggle" style="font-weight: bold; cursor: pointer;">Show Pinyin Subtitles</label>
-        <input type="checkbox" id="pinyinToggle" checked style="width: auto; margin: 0; transform: scale(1.3); cursor: pointer;">
-    </div>
-    <button class="btn-listen" id="listenBtn">🔊 1. Listen to Teacher</button>
-    <button class="btn-record" id="recordBtn">🎙️ 2. Press & Speak</button>
-    <div id="status" style="margin: 8px 0; color: #666; font-size: 14px;">Status: Ready</div>
-    
-    <div class="result-box" id="resultDiv" style="display: none;">
-        <h3>What the app heard:</h3>
-        <div id="visualFeedback" style="text-align: center; background: white; padding: 12px; border-radius: 6px; display: flex !important; justify-content: center; align-items: center; flex-wrap: wrap;"></div>
-        <p id="accuracyResult" style="font-weight: bold; text-align: center Papabigchin;"></p>
-    </div>
-    <div class="button-row">
-        <button class="btn-next" id="nextPageBtn">Flash Cards ➡️</button>
-    </div>
-</div>
-<script>
-    const targetTextInput = document.getElementById('targetText');
-    const livePreview = document.getElementById('livePreview');
-    const listenBtn = document.getElementById('listenBtn');
-    const recordBtn = document.getElementById('recordBtn');
-    const pinyinToggle = document.getElementById('pinyinToggle');
-    const speedSlider = document.getElementById('speedSlider');
-    const speedLabel = document.getElementById('speedLabel');
-    const statusText = document.getElementById('status');
-    const resultDiv = document.getElementById('resultDiv');
-    const visualFeedback = document.getElementById('visualFeedback');
-    const accuracyResult = document.getElementById('accuracyResult');
-    const nextPageBtn = document.getElementById('nextPageBtn');
 
-    const { pinyin } = pinyinPro;
-    // Custom helper function to handle the copy & paste routing
-    window.copyToMain = function(phraseId) {
-    const phraseInput = document.getElementById(phraseId);
-    if (phraseInput) {
-        targetTextInput.value = phraseInput.value;
-        // Instantly update the Pinyin presentation preview layout
-        updateLivePreview();
-    }
-};
-    function createPairNode(charVal, pinyinVal, classVal) {
-        const d = document.createElement('div');
-        d.className = "char-pair " + classVal;
-        const p = document.createElement('span');
-        p.className = "pinyin-sub";
-        p.innerText = pinyinVal;
-        const c = document.createElement('span');
-        c.className = "chinese-char";
-        c.innerText = charVal;
-        d.appendChild(p);
-        d.appendChild(c);
-        return d;
-    }
-
-    function checkMatch(hc, tc, hp, tp) {
-        if (hc === tc) return true;
-        if (tp && tp === hp) return true;
-        return false;
-    }
-
-    function updateLivePreview() {
-        const txt = targetTextInput.value.trim();
-        livePreview.innerHTML = "";
-        if (!txt) {
-            livePreview.innerText = "Waiting for input...";
-            return;
-        }
-        if (pinyinToggle.checked) livePreview.classList.remove('hide-pinyin');
-        else livePreview.classList.add('hide-pinyin');
-        
-        const pinStr = pinyin(txt) || "";
-        const pinArr = pinStr.split(" ");
-        
-        let loopIdx = 0;
-        while (loopIdx < txt.length) {
-            const currentCharacter = txt.charAt(loopIdx);
-            const currentPinyin = pinArr[loopIdx] || "";
-            const node = createPairNode(currentCharacter, currentPinyin, "");
-            livePreview.appendChild(node);
-            loopIdx = loopIdx + 1;
-        }
-    }
-
-    targetTextInput.addEventListener('input', updateLivePreview);
-    
-    pinyinToggle.addEventListener('change', function() {
-        if (pinyinToggle.checked) {
-            livePreview.classList.remove('hide-pinyin');
-            visualFeedback.classList.remove('hide-pinyin');
-        } else {
-            livePreview.classList.add('hide-pinyin');
-            visualFeedback.classList.add('hide-pinyin');
-        }
-    });
-
-    window.addEventListener('DOMContentLoaded', updateLivePreview);
-
-    speedSlider.addEventListener('input', function() {
-        const labels = {
-            "1": "Normal", "0.9": "Slower 10%", "0.8": "Slower 20%",
-            "0.7": "Slower 30%", "0.6": "Slower 40%", "0.5": "Slower 50%"
-        };
-        speedLabel.innerText = labels[speedSlider.value] || "Normal";
-    });
-
-    listenBtn.addEventListener('click', function() {
-        const text = targetTextInput.value.trim();
-        if (!text) return alert("Please enter a Chinese phrase first!");
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN'; 
-        utterance.rate = parseFloat(speedSlider.value);
-        window.speechSynthesis.speak(utterance);
-    });
-
-    nextPageBtn.addEventListener('click', function() {
-        const text = targetTextInput.value.trim();
-        if (!text) return alert("Please enter a Chinese phrase first!");
-        window.location.href = "flashcards.html?words=" + encodeURIComponent(text);
-    });
-
-    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-    if (!SpeechRecognition) {
-        alert("Your tablet browser does not fully support free voice detection. Please make sure you are using official Google Chrome.");
-    } else {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'zh-CN';
-        recognition.interimResults = false;
-        let isRecording = false;
-
-        recordBtn.addEventListener('click', function() {
-            if (!isRecording) {
-                const text = targetTextInput.value.trim();
-                if (!text) return alert("Please enter the target phrase first!");
-                recognition.start();
-                isRecording = true;
-                recordBtn.innerText = "🛑 Recording... Speak Now";
-                recordBtn.classList.add('recording');
-                statusText.innerText = "Listening closely to your pronunciation...";
-            } else {
-                recognition.stop();
-            }
-        });
-
-        recognition.onresult = function(event) {
-            const resultText = event.results[0][0].transcript;
-            analyzeSpeech(resultText);
-        };
-
-        recognition.onend = function() {
-            isRecording = false;
-            recordBtn.innerText = "🎙️ 2. Press & Speak";
-            recordBtn.classList.remove('recording');
-            statusText.innerText = "Analysis done.";
-        };
-
-        function analyzeSpeech(heardText) {
-            const targetText = targetTextInput.value.trim();
-            visualFeedback.innerHTML = "";
-            resultDiv.style.display = "block";
-            
-            if (pinyinToggle.checked) visualFeedback.classList.remove('hide-pinyin');
-            else visualFeedback.classList.add('hide-pinyin');
-            
-            let correctCount = 0;
-            const targetPinyinStr = pinyin(targetText) || "";
-            const targetPinyinArr = targetPinyinStr.split(" ");
-            const heardPinyinStr = pinyin(heardText) || "";
-            const heardPinyinArr = heardPinyinStr.split(" ");
-
-            let evalIdx = 0;
-            while (evalIdx < targetText.length) {
-                const tChar = targetText.charAt(evalIdx);
-                const tPin = targetPinyinArr[evalIdx] || "";
-                const hPin = heardPinyinArr[evalIdx] || "";
-                const hChar = heardText.charAt(evalIdx) || "❓";
-                const isWinner = checkMatch(hChar, tChar, hPin, tPin);
-                
-                if (isWinner) {
-                    visualFeedback.appendChild(createPairNode(tChar, tPin, "matched"));
-                    correctCount = correctCount + 1;
-                } else {
-                    visualFeedback.appendChild(createPairNode(hChar, tPin, "mismatched"));
-                }
-                evalIdx = evalIdx + 1;
-            }
-
-            const score = Math.round((correctCount / targetText.length) * 100);
-            accuracyResult.innerText = "Match Score: " + score + "% (" + correctCount + " of " + targetText.length + " correct)";
-        }
-    }
-</script>
 </body>
 </html>
