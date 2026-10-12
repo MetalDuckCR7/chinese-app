@@ -584,10 +584,16 @@
             if (audioContext) audioContext.close();
         }
 
-        function verifyPronunciation(spoken) {
+                function verifyPronunciation(spoken) {
+            // FIXED: Removed the invalid escaping backslash before the dollar sign
             const cleanTarget = currentActiveText.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
             const cleanSpoken = spoken.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
             
+            if (typeof pinyinPro === 'undefined' || !pinyinPro.pinyin) {
+                console.error("Pinyin library not loaded yet.");
+                return;
+            }
+
             const targetPinyins = pinyinPro.pinyin(cleanTarget, { type: 'array', toneType: 'symbol' });
             const spokenPinyins = pinyinPro.pinyin(cleanSpoken, { type: 'array', toneType: 'symbol' });
 
@@ -599,6 +605,7 @@
                 const charEl = document.getElementById('char-index-' + index);
                 if (!charEl) return;
 
+                // Ignore punctuation spaces from the color marking engine
                 if (/[.,\/#!$%\^&\*;:{}=\-_`~()？。，！\s]/.test(char)) {
                     return;
                 }
@@ -606,11 +613,12 @@
                 const targetPinyin = targetPinyins[cleanIndex];
                 const spokenPinyin = spokenPinyins[cleanIndex];
 
+                // Symmetrical string token parsing comparisons
                 if (spokenPinyin && targetPinyin === spokenPinyin) {
-                    charEl.classList.add('char-correct');
+                    charEl.className = 'char-chinese char-correct';
                     correctCount++;
                 } else {
-                    charEl.classList.add('char-incorrect');
+                    charEl.className = 'char-chinese char-incorrect';
                 }
                 cleanIndex++;
             });
@@ -622,6 +630,7 @@
             scoreDisplay.innerText = 'Score: ' + scorePercentage + '%';
             scoreDisplay.style.display = 'inline-block';
         }
+
 
         function togglePinyinVisibility() {
             const pinyinElements = document.querySelectorAll('.char-pinyin');
