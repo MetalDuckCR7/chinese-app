@@ -356,22 +356,23 @@
         <button onclick="window.location.href='chinese.html'" class="back-btn">Back to Chinese Menu</button>
     </div>
 
-    <script>
-        const savedPhrases = JSON.parse(localStorage.getItem('chinesePhrases'));
-        const defaultPhrases = ["你好吗？", "谢谢你。", "我喜欢学习。", "今天天气很好。", "再见。"];
-        const phrasesToDisplay = savedPhrases && savedPhrases.length === 5 ? savedPhrases : defaultPhrases;
+        <script>
+        var savedPhrases = JSON.parse(localStorage.getItem('chinesePhrases'));
+        var defaultPhrases = ["你好吗？", "谢谢你。", "我喜欢学习。", "今天天气很好。", "再见。"];
+        var phrasesToDisplay = savedPhrases && savedPhrases.length === 5 ? savedPhrases : defaultPhrases;
         
-        let currentActiveText = "";
-        const container = document.getElementById('phraseContainer');
+        var currentActiveText = "";
+        var container = document.getElementById('phraseContainer');
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = null;
-        let isRecording = false;
+        var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        var recognition = null;
+        var isRecording = false;
         
-        let audioContext = null;
-        let analyser = null;
-        let dataArray = null;
-        let animationFrameId = null;
+        var audioContext = null;
+        var analyser = null;
+        var dataArray = null;
+        var animationFrameId = null;
+        var micStream = null;
 
         if (SpeechRecognition) {
             recognition = new SpeechRecognition();
@@ -380,34 +381,33 @@
             recognition.maxAlternatives = 1;
         }
 
-        phrasesToDisplay.forEach((phrase, index) => {
-            const row = document.createElement('div');
+        // Build core elements using standard string concatenation
+        phrasesToDisplay.forEach(function(phrase, index) {
+            var row = document.createElement('div');
             row.className = 'phrase-row';
-            const uniqueId = 'listenField-' + index;
+            var uniqueId = 'listenField-' + index;
 
-            row.innerHTML = `
-                <span class="phrase-number">${index + 1}:</span>
-                <input type="text" id="${uniqueId}" class="locked-field" value="${phrase.replace(/"/g, '&quot;')}" readonly>
-                <button class="copy-btn" onclick="handleCopyAndPaste('${uniqueId}', this)">Copy & Paste</button>
-            `;
+            row.innerHTML = '<span class="phrase-number">' + (index + 1) + ':</span>' +
+                            '<input type="text" id="' + uniqueId + '" class="locked-field" value="' + phrase.replace(/"/g, '&quot;') + '" readonly>' +
+                            '<button class="copy-btn" onclick="handleCopyAndPaste(\'' + uniqueId + '\', this)">Copy & Paste</button>';
             container.appendChild(row);
         });
 
         function handleCopyAndPaste(fieldId, buttonElement) {
-            const targetInput = document.getElementById(fieldId);
+            var targetInput = document.getElementById(fieldId);
             
             if (targetInput && targetInput.value.trim() !== '') {
                 currentActiveText = targetInput.value;
 
-                navigator.clipboard.writeText(currentActiveText).then(() => {
-                    const originalText = buttonElement.innerText;
+                navigator.clipboard.writeText(currentActiveText).then(function() {
+                    var originalText = buttonElement.innerText;
                     buttonElement.innerText = "Copied!";
                     buttonElement.classList.add('copied');
-                    setTimeout(() => {
+                    setTimeout(function() {
                         buttonElement.innerText = originalText;
                         buttonElement.classList.remove('copied');
                     }, 2000);
-                }).catch(err => console.error('Failed to copy text: ', err));
+                }).catch(function(err) { console.error('Clipboard error:', err); });
 
                 document.getElementById('playAudioBtn').style.display = 'inline-block';
                 if (recognition) {
@@ -426,10 +426,9 @@
             document.getElementById('rateVal').innerText = val + '%';
         }
 
-
         function translateToPinyin(text) {
-            const display = document.getElementById('pinyinDisplay');
-            const showPinyin = document.getElementById('pinyinToggle').checked;
+            var display = document.getElementById('pinyinDisplay');
+            var showPinyin = document.getElementById('pinyinToggle').checked;
             
             if (!text || text.trim() === '') {
                 display.innerHTML = '<span style="color: #7f8c8d;">Click "Copy & Paste" above to see the alignment layout...</span>';
@@ -438,23 +437,20 @@
 
             try {
                 if (typeof pinyinPro !== 'undefined' && pinyinPro.pinyin) {
-                    const chars = Array.from(text);
-                    const pinyinArray = pinyinPro.pinyin(text, { type: 'array', toneType: 'symbol' });
+                    var chars = Array.from(text);
+                    var pinyinArray = pinyinPro.pinyin(text, { type: 'array', toneType: 'symbol' });
                     
                     display.innerHTML = '';
 
-                    chars.forEach((char, index) => {
-                        const col = document.createElement('div');
+                    chars.forEach(function(char, index) {
+                        var col = document.createElement('div');
                         col.className = 'char-column';
-                        const pinyinVal = pinyinArray[index] || '';
-                        const hideClass = showPinyin ? '' : 'hidden-pinyin';
-                        const finalPinyin = pinyinVal === char ? '&nbsp;' : pinyinVal;
+                        var pinyinVal = pinyinArray[index] || '';
+                        var hideClass = showPinyin ? '' : 'hidden-pinyin';
+                        var finalPinyin = (pinyinVal === char) ? '&nbsp;' : pinyinVal;
 
-                        // Built using safe concatenation to guarantee no syntax injection crashes
-                        col.innerHTML = 
-                            '<span class="char-chinese" id="char-index-' + index + '">' + char + '</span>' +
-                            '<span class="char-pinyin ' + hideClass + '">' + finalPinyin + '</span>';
-                        
+                        col.innerHTML = '<span class="char-chinese" id="char-index-' + index + '">' + char + '</span>' +
+                                        '<span class="char-pinyin ' + hideClass + '">' + finalPinyin + '</span>';
                         display.appendChild(col);
                     });
                 } else {
@@ -470,15 +466,13 @@
             if (!currentActiveText) return;
             window.speechSynthesis.cancel();
 
-            const utterance = new SpeechSynthesisUtterance(currentActiveText);
+            var utterance = new SpeechSynthesisUtterance(currentActiveText);
             utterance.lang = 'zh-CN';
-            
-            const sliderVal = parseInt(document.getElementById('speechRate').value);
+            var sliderVal = parseInt(document.getElementById('speechRate').value);
             utterance.rate = sliderVal / 100;
 
             window.speechSynthesis.speak(utterance);
         }
-
         function handleSpeechRecording() {
             if (!recognition) return;
             if (isRecording) {
@@ -491,26 +485,34 @@
         function startSpeechRecognition() {
             if (!currentActiveText) return;
 
-            isRecording = true;
-            const recordBtn = document.getElementById('recordAudioBtn');
-            recordBtn.innerText = "Stop & Analyze 🟥";
-            recordBtn.classList.add('recording');
-            document.getElementById('visualizerContainer').style.display = 'block';
-
-            document.querySelectorAll('.char-chinese').forEach(el => {
-                el.classList.remove('char-correct', 'char-incorrect');
+            document.querySelectorAll('.char-chinese').forEach(function(el) {
+                el.className = 'char-chinese';
             });
 
-            startVisualizer();
-            recognition.start();
+            // FIXED: Requests mic ONCE and cleanly hooks both modules to it
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                micStream = stream;
+                isRecording = true;
+
+                var recordBtn = document.getElementById('recordAudioBtn');
+                recordBtn.innerText = "Stop & Analyze 🟥";
+                recordBtn.classList.add('recording');
+                document.getElementById('visualizerContainer').style.display = 'block';
+
+                startVisualizer(stream);
+                recognition.start();
+            }).catch(function(err) {
+                console.error('Mic access denied:', err);
+                alert("Please allow mic access to check pronunciation!");
+            });
 
             recognition.onresult = function(event) {
-                const spokenText = event.results.transcript;
+                var spokenText = event.results[0][0].transcript;
                 verifyPronunciation(spokenText);
             };
 
             recognition.onerror = function(event) {
-                console.error('Speech recognition error', event.error);
+                console.error('Speech engine error:', event.error);
                 cleanupRecordingUI();
             };
 
@@ -521,26 +523,26 @@
 
         function cleanupRecordingUI() {
             isRecording = false;
-            const recordBtn = document.getElementById('recordAudioBtn');
+            var recordBtn = document.getElementById('recordAudioBtn');
             recordBtn.innerText = "Record & Verify 🎙️";
             recordBtn.classList.remove('recording');
             stopVisualizer();
         }
 
-        function startVisualizer() {
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        function startVisualizer(stream) {
+            try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioContext.createMediaStreamSource(stream);
+                var source = audioContext.createMediaStreamSource(stream);
                 analyser = audioContext.createAnalyser();
                 analyser.fftSize = 2048;
                 
                 source.connect(analyser);
                 
-                const bufferLength = analyser.frequencyBinCount;
+                var bufferLength = analyser.frequencyBinCount;
                 dataArray = new Uint8Array(bufferLength);
                 
-                const canvas = document.getElementById('waveCanvas');
-                const canvasCtx = canvas.getContext('2d');
+                var canvas = document.getElementById('waveCanvas');
+                var canvasCtx = canvas.getContext('2d');
                 
                 canvas.width = canvas.parentElement.offsetWidth;
                 canvas.height = 60;
@@ -557,12 +559,12 @@
                     canvasCtx.strokeStyle = '#2ecc71';
                     canvasCtx.beginPath();
                     
-                    const sliceWidth = canvas.width * 1.0 / bufferLength;
-                    let x = 0;
+                    var sliceWidth = canvas.width * 1.0 / bufferLength;
+                    var x = 0;
                     
-                    for (let i = 0; i < bufferLength; i++) {
-                        const v = dataArray[i] / 128.0;
-                        const vY = v * canvas.height / 2;
+                    for (var i = 0; i < bufferLength; i++) {
+                        var v = dataArray[i] / 128.0;
+                        var vY = v * canvas.height / 2;
                         
                         if (i === 0) {
                             canvasCtx.moveTo(x, vY);
@@ -576,44 +578,42 @@
                     canvasCtx.stroke();
                 }
                 draw();
-            }).catch(err => console.error('Visualizer capture failed:', err));
+            } catch (e) {
+                console.error("Canvas link context crash:", e);
+            }
         }
 
         function stopVisualizer() {
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
             if (audioContext) audioContext.close();
+            if (micStream) {
+                micStream.getTracks().forEach(function(track) { track.stop(); });
+            }
         }
 
-                function verifyPronunciation(spoken) {
-            // FIXED: Removed the invalid escaping backslash before the dollar sign
-            const cleanTarget = currentActiveText.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
-            const cleanSpoken = spoken.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
+        function verifyPronunciation(spoken) {
+            // FIXED: Standard character stripping logic without code-breaking template leaks
+            var cleanTarget = currentActiveText.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
+            var cleanSpoken = spoken.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
             
-            if (typeof pinyinPro === 'undefined' || !pinyinPro.pinyin) {
-                console.error("Pinyin library not loaded yet.");
-                return;
-            }
+            var targetPinyins = pinyinPro.pinyin(cleanTarget, { type: 'array', toneType: 'symbol' });
+            var spokenPinyins = pinyinPro.pinyin(cleanSpoken, { type: 'array', toneType: 'symbol' });
 
-            const targetPinyins = pinyinPro.pinyin(cleanTarget, { type: 'array', toneType: 'symbol' });
-            const spokenPinyins = pinyinPro.pinyin(cleanSpoken, { type: 'array', toneType: 'symbol' });
+            var correctCount = 0;
+            var targetCharsArray = Array.from(currentActiveText);
 
-            let correctCount = 0;
-            const targetCharsArray = Array.from(currentActiveText);
-
-            let cleanIndex = 0;
-            targetCharsArray.forEach((char, index) => {
-                const charEl = document.getElementById('char-index-' + index);
+            var cleanIndex = 0;
+            targetCharsArray.forEach(function(char, index) {
+                var charEl = document.getElementById('char-index-' + index);
                 if (!charEl) return;
 
-                // Ignore punctuation spaces from the color marking engine
                 if (/[.,\/#!$%\^&\*;:{}=\-_`~()？。，！\s]/.test(char)) {
                     return;
                 }
 
-                const targetPinyin = targetPinyins[cleanIndex];
-                const spokenPinyin = spokenPinyins[cleanIndex];
+                var targetPinyin = targetPinyins[cleanIndex];
+                var spokenPinyin = spokenPinyins[cleanIndex];
 
-                // Symmetrical string token parsing comparisons
                 if (spokenPinyin && targetPinyin === spokenPinyin) {
                     charEl.className = 'char-chinese char-correct';
                     correctCount++;
@@ -623,20 +623,19 @@
                 cleanIndex++;
             });
 
-            const totalCleanChars = targetPinyins.length;
-            const scorePercentage = totalCleanChars > 0 ? Math.round((correctCount / totalCleanChars) * 100) : 0;
+            var totalCleanChars = targetPinyins.length;
+            var scorePercentage = totalCleanChars > 0 ? Math.round((correctCount / totalCleanChars) * 100) : 0;
 
-            const scoreDisplay = document.getElementById('scoreDisplay');
+            var scoreDisplay = document.getElementById('scoreDisplay');
             scoreDisplay.innerText = 'Score: ' + scorePercentage + '%';
             scoreDisplay.style.display = 'inline-block';
         }
 
-
         function togglePinyinVisibility() {
-            const pinyinElements = document.querySelectorAll('.char-pinyin');
-            const showPinyin = document.getElementById('pinyinToggle').checked;
+            var pinyinElements = document.querySelectorAll('.char-pinyin');
+            var showPinyin = document.getElementById('pinyinToggle').checked;
 
-            pinyinElements.forEach(el => {
+            pinyinElements.forEach(function(el) {
                 if (showPinyin) {
                     el.classList.remove('hidden-pinyin');
                 } else {
@@ -647,4 +646,5 @@
     </script>
 </body>
 </html>
+
 
