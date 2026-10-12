@@ -473,9 +473,10 @@
 
             window.speechSynthesis.speak(utterance);
         }
-        function handleSpeechRecording() {
+                function handleSpeechRecording() {
             if (!recognition) return;
             if (isRecording) {
+                // FORCE ENGINE COMPLETE: Stops recording and immediately forces analysis on what it heard
                 recognition.stop();
             } else {
                 startSpeechRecognition();
@@ -489,7 +490,6 @@
                 el.className = 'char-chinese';
             });
 
-            // FIXED: Requests mic ONCE and cleanly hooks both modules to it
             navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
                 micStream = stream;
                 isRecording = true;
@@ -506,9 +506,12 @@
                 alert("Please allow mic access to check pronunciation!");
             });
 
+            // FIXED: Handles fast intermediate voice calculations so results capture immediately on stop
             recognition.onresult = function(event) {
-                var spokenText = event.results[0][0].transcript;
-                verifyPronunciation(spokenText);
+                if (event.results && event.results[0]) {
+                    var spokenText = event.results[0][0].transcript;
+                    verifyPronunciation(spokenText);
+                }
             };
 
             recognition.onerror = function(event) {
@@ -592,12 +595,21 @@
         }
 
         function verifyPronunciation(spoken) {
-            // FIXED: Standard character stripping logic without code-breaking template leaks
+            if (!spoken) return;
+
+            // Normalize characters for calculation mapping
             var cleanTarget = currentActiveText.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
             var cleanSpoken = spoken.replace(/[.,\/#!\$%\^&\*;:{}=\-_`~()？。，！\s]/g,"");
             
-            var targetPinyins = pinyinPro.pinyin(cleanTarget, { type: 'array', toneType: 'symbol' });
-            var spokenPinyins = pinyinPro.pinyin(cleanSpoken, { type: 'array', toneType: 'symbol' });
+            // Accessing the pinyinPro global library engine cleanly
+            var pinyinEngine = window.pinyinPro || pinyinPro;
+            if (!pinyinEngine || !pinyinEngine.pinyin) {
+                console.error("Pinyin library not loaded yet.");
+                return;
+            }
+
+            var targetPinyins = pinyinEngine.pinyin(cleanTarget, { type: 'array', toneType: 'symbol' });
+            var spokenPinyins = pinyinEngine.pinyin(cleanSpoken, { type: 'array', toneType: 'symbol' });
 
             var correctCount = 0;
             var targetCharsArray = Array.from(currentActiveText);
@@ -646,5 +658,3 @@
     </script>
 </body>
 </html>
-
-
