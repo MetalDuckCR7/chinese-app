@@ -63,11 +63,10 @@
             width: 20px;
         }
         
-        /* Single framed container on the right side */
-                /* Single framed container on the right side */
+        /* Single framed container on the right side - Orange Theme */
         .mix-match-single-box {
-            background-color: #fdf6ee; /* Updated to a warm, light orange tint background */
-            border: 2px dashed #e67e22; /* Changed border color from blue to solid orange */
+            background-color: #fdf6ee;
+            border: 2px dashed #e67e22;
             padding: 20px;
             border-radius: 8px;
             display: flex;
@@ -81,7 +80,7 @@
             position: absolute;
             top: -12px;
             left: 15px;
-            background-color: #e67e22; /* Changed background flag indicator color to orange */
+            background-color: #e67e22;
             color: white;
             padding: 2px 10px;
             font-size: 0.8rem;
@@ -90,7 +89,6 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
         
         .full-input {
             width: 100%;
@@ -108,27 +106,47 @@
             outline: none;
         }
         
-        .row-action-btn {
-            background-color: #3498db;
+        /* Orientation Lock Blocker Overlay Styles */
+        .orientation-blocker {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #2c3e50;
             color: white;
-            border: none;
-            padding: 12px 14px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background-color 0.2s;
-            height: 46px;
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
         }
-        .row-action-btn:hover {
-            background-color: #2980b9;
+        .blocker-content {
+            max-width: 400px;
         }
-        .row-action-btn.copied {
-            background-color: #2ecc71;
+        .blocker-icon {
+            font-size: 3.5rem;
+            display: inline-block;
+            margin-bottom: 15px;
+            animation: rotateIcon 2s infinite ease-in-out;
+        }
+        @keyframes rotateIcon {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @media screen and (max-width: 767px) and (orientation: portrait) {
+            .orientation-blocker {
+                display: flex;
+            }
+            body {
+                overflow: hidden;
+            }
         }
         
-        /* FIXED: Action Row aligning Listen-Repeat perfectly on the same line as Mix-Match */
+        /* Action Row aligning Listen-Repeat perfectly on the same line as Mix-Match */
         .action-row-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -184,105 +202,46 @@
         .back-btn:hover {
             background-color: #7f8c8d;
         }
-                /* Full-screen Blocker Overlay Design */
-        .orientation-blocker {
-            display: none; /* Hidden by default on desktops and larger screens */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #2c3e50;
-            color: white;
-            z-index: 99999; /* Forces the blocker to sit on top of everything else */
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        .blocker-content {
-            max-width: 400px;
-        }
-        .blocker-icon {
-            font-size: 3.5rem;
-            display: inline-block;
-            margin-bottom: 15px;
-            animation: rotateIcon 2s infinite ease-in-out;
-        }
-        .orientation-blocker h2 {
-            margin: 0 0 10px 0;
-            font-size: 1.6rem;
-        }
-        .orientation-blocker p {
-            margin: 0;
-            color: #bdc3c7;
-            font-size: 1rem;
-            line-height: 1.4;
-        }
-        @keyframes rotateIcon {
-            0% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
-            100% { transform: rotate(0deg); }
-        }
-
-        /* 
-           RESPONSIVE VIEWPORT TRIGGER: 
-           Activates ONLY on screens narrower than 768px (phones) AND when held vertically (portrait).
-        */
-        @media screen and (max-width: 767px) and (orientation: portrait) {
-            .orientation-blocker {
-                display: flex; /* Overrides hidden state and forces full-screen flex layout overlay */
-            }
-            body {
-                overflow: hidden; /* Lock background scrolling while the blocker is active */
-            }
-        }
-
     </style>
 </head>
 <body>
-<!-- Screen Lock Blocker Overlay for Mobile Portrait Orientation -->
-<div class="orientation-blocker">
-    <div class="blocker-content">
-        <span class="blocker-icon">🔄</span>
-        <h2>Please Rotate Your Device</h2>
-        <p>This activity is best experienced in Landscape Mode. Please turn your phone sideways to unlock the lesson!</p>
+
+    <!-- Orientation Lock Blocker Overlay -->
+    <div class="orientation-blocker">
+        <div class="blocker-content">
+            <span class="blocker-icon">🔄</span>
+            <h2>Please Rotate Your Device</h2>
+            <p>This activity is best experienced in Landscape Mode. Please turn your phone sideways to unlock the lesson!</p>
+        </div>
     </div>
-</div>
 
     <div class="container">
         <h1>Chinese Menu</h1>
-        <p class="subtitle">Customize your practice items below. Symmetrical button alignment blocks are fully active!</p>
+        <p class="subtitle">Input your pratices phrases below on the left column. </p>
         
         <!-- Primary Grid Layout for Input Rows -->
         <div class="grid-layout">
-            <!-- Left Column: Custom Chinese Phrases -->
+            <!-- Left Column: Custom Chinese Phrases (No buttons) -->
             <div class="left-column">
                 <div class="phrase-row">
                     <span class="phrase-number">1:</span>
                     <input type="text" id="phrase1" class="full-input" value="你好吗？">
-                    <button class="row-action-btn" onclick="copyRowText('phrase1', this)">Copy & Paste</button>
                 </div>
                 <div class="phrase-row">
                     <span class="phrase-number">2:</span>
                     <input type="text" id="phrase2" class="full-input" value="谢谢你。">
-                    <button class="row-action-btn" onclick="copyRowText('phrase2', this)">Copy & Paste</button>
                 </div>
                 <div class="phrase-row">
                     <span class="phrase-number">3:</span>
                     <input type="text" id="phrase3" class="full-input" value="我喜欢学习。">
-                    <button class="row-action-btn" onclick="copyRowText('phrase3', this)">Copy & Paste</button>
                 </div>
                 <div class="phrase-row">
                     <span class="phrase-number">4:</span>
                     <input type="text" id="phrase4" class="full-input" value="今天天气很好。">
-                    <button class="row-action-btn" onclick="copyRowText('phrase4', this)">Copy & Paste</button>
                 </div>
                 <div class="phrase-row">
                     <span class="phrase-number">5:</span>
                     <input type="text" id="phrase5" class="full-input" value="再见。">
-                    <button class="row-action-btn" onclick="copyRowText('phrase5', this)">Copy & Paste</button>
                 </div>
             </div>
 
@@ -296,7 +255,7 @@
             </div>
         </div>
 
-        <!-- FIXED: Listen-Repeat aligns on the exact same row level as Mix-Match -->
+        <!-- Action Row: Listen-Repeat aligns on the exact same row level as Mix-Match -->
         <div class="action-row-grid">
             <button onclick="navigateTo('listen-repeat.html')" class="nav-btn primary-btn">Listen and Repeat</button>
             <button onclick="navigateTo('mix-match.html')" class="nav-btn mix-match-action-btn">Mix and Match Game ➔</button>
@@ -310,7 +269,7 @@
     </div>
 
     <script>
-        // Load all 10 saved settings inputs from cache storage parameters on load initialization
+        // Load all 10 saved settings inputs from cache parameters on load initialization
         window.addEventListener('DOMContentLoaded', () => {
             const savedPhrases = JSON.parse(localStorage.getItem('chinesePhrases'));
             const savedMatches = JSON.parse(localStorage.getItem('chineseMatches'));
@@ -328,22 +287,7 @@
             }
         });
 
-        function copyRowText(fieldId, buttonElement) {
-            const targetInput = document.getElementById(fieldId);
-            if (targetInput && targetInput.value.trim() !== '') {
-                navigator.clipboard.writeText(targetInput.value).then(() => {
-                    const originalText = buttonElement.innerText;
-                    buttonElement.innerText = "Copied!";
-                    buttonElement.classList.add('copied');
-                    setTimeout(() => {
-                        buttonElement.innerText = originalText;
-                        buttonElement.classList.remove('copied');
-                    }, 2000);
-                }).catch(err => console.error('Failed to copy text: ', err));
-            }
-        }
-
-        // Cache persistent elements into localStorage before transitioning dynamic window views
+        // Cache persistent elements into localStorage before transitioning views
         function navigateTo(targetPage) {
             const phrases = [
                 document.getElementById('phrase1').value,
