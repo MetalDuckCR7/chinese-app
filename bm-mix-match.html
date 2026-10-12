@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permainan Padan Ayat - Papa Big Chin</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 850px;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+        
+        /* Grid Arena with wide column separation */
+        .game-arena {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 150px;
+            margin-bottom: 30px;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        /* Smaller text box scale profile */
+        .match-box-item {
+            background-color: #ffffff;
+            border: 2px solid #bdc3c7;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            user-select: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-height: 38px;
+            max-width: 240px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .match-box-item:hover {
+            border-color: #3498db;
+            transform: translateY(-1px);
+        }
+        .match-box-item.selected {
+            border-color: #e67e22;
+            background-color: #fdf6ee;
+            box-shadow: 0 0 8px rgba(230, 126, 34, 0.3);
+        }
+        
+        /* 5 Distinct Pastel Connection Pairing Color Themes */
+        .match-box-item.pair-0 { background-color: #dff9fb !important; border-color: #3498db !important; color: #2c3e50; }
+        .match-box-item.pair-1 { background-color: #f5cd79 !important; border-color: #e67e22 !important; color: #2c3e50; }
+        .match-box-item.pair-2 { background-color: #ffd2d2 !important; border-color: #e74c3c !important; color: #2c3e50; }
+        .match-box-item.pair-3 { background-color: #f8a5c2 !important; border-color: #f53b57 !important; color: #2c3e50; }
+        .match-box-item.pair-4 { background-color: #ffeaa7 !important; border-color: #fdcb6e !important; color: #2c3e50; }
+        
+        /* Immersive neon glowing visual feedback markers */
+        .match-box-item.correct {
+            border-color: #2ecc71 !important;
+            box-shadow: 0 0 15px #2ecc71, inset 0 0 5px rgba(46, 204, 113, 0.5) !important;
+            font-weight: bold;
+        }
+        .match-box-item.incorrect {
+            border-color: #e74c3c !important;
+            box-shadow: 0 0 15px #e74c3c, inset 0 0 5px rgba(231, 76, 60, 0.5) !important;
+            font-weight: bold;
+        }
+        
+        /* Orientation Lock Blocker Overlay Styles */
+        .orientation-blocker {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #2c3e50;
+            color: white;
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .blocker-content {
+            max-width: 400px;
+        }
+        .blocker-icon {
+            font-size: 3.5rem;
+            display: inline-block;
+            margin-bottom: 15px;
+            animation: rotateIcon 2s infinite ease-in-out;
+        }
+        @keyframes rotateIcon {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @media screen and (max-width: 767px) and (orientation: portrait) {
+            .orientation-blocker { display: flex; }
+            body { overflow: hidden; }
+        }
+        
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        @media(min-width: 480px) {
+            .action-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .exit-btn {
+                grid-column: span 2;
+            }
+        }
+        .action-btn {
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .verify-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .verify-btn:hover {
+            background-color: #27ae60;
+        }
+        .scramble-btn {
+            background-color: #e67e22;
+            color: white;
+        }
+        .scramble-btn:hover {
+            background-color: #d35400;
+        }
+        .exit-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .exit-btn:hover {
+            background-color: #7f8c8d;
+        }
+        .result-banner {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+        .result-success { background-color: #eafaf1; color: #27ae60; }
+        .result-fail { background-color: #fceae9; color: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <!-- Orientation Lock Blocker Overlay -->
+    <div class="orientation-blocker">
+        <div class="blocker-content">
+            <span class="blocker-icon">🔄</span>
+            <h2>Sila Putar Peranti Anda</h2>
+            <p>Aktiviti ini paling baik dialami dalam Mod Landskap. Sila pusingkan telefon anda ke sisi untuk membuka kunci pelajaran!</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Permainan Padan Ayat</h1>
+        <p class="subtitle">Ketik perkataan pada lajur kiri, kemudian ketik padanannya pada lajur kanan. Item yang dipadankan akan berkongsi warna yang sama!</p>
+        
+        <div class="game-arena">
+            <div class="column" id="leftColumn"></div>
+            <div class="column" id="rightColumn"></div>
+        </div>
+
+        <div id="resultBanner" class="result-banner"></div>
+
+        <div class="action-grid">
+            <button onclick="checkMatches()" class="action-btn verify-btn">Sahkan Jawapan ✔️</button>
+            <button onclick="scrambleBoard()" class="action-btn scramble-btn">Selerakkan Susunan 🔄</button>
+            <button onclick="window.location.href='bahasa-melayu.html'" class="action-btn exit-btn">Kembali ke Menu Utama ➔</button>
+        </div>
+    </div>
+
+<script>
+        // Dedicated data fetch pointing to the separated Malay storage memory keys
+        var savedPhrases = JSON.parse(localStorage.getItem('bmPhrases'));
+        var savedMatches = JSON.parse(localStorage.getItem('bmMatches'));
+
+        var defaultPhrases = ["Apa khabar?", "Terima kasih.", "Saya suka belajar.", "Cuaca hari ini sangat bagus.", "Selamat tinggal."];
+        var defaultMatches = ["How are you?", "Thank you.", "I like studying.", "The weather is nice today.", "Goodbye."];
+
+        var targetPhrases = savedPhrases && savedPhrases.length === 5 ? savedPhrases : defaultPhrases;
+        var targetMatches = savedMatches && savedMatches.length === 5 ? savedMatches : defaultMatches;
+
+        var leftSelected = null;
+        var connections = {}; 
+        var isGameLocked = false;
+
+        var leftOrder = [];
+        var rightOrder = [];
+        for (var i = 0; i < 5; i++) {
+            leftOrder.push(i);
+            rightOrder.push(i);
+        }
+
+        function shuffle(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function buildGameField() {
+            connections = {};
+            leftSelected = null;
+            isGameLocked = false;
+            document.getElementById('resultBanner').style.display = 'none';
+
+            shuffle(leftOrder);
+            shuffle(rightOrder);
+
+            var leftCol = document.getElementById('leftColumn');
+            var rightCol = document.getElementById('rightColumn');
+            
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+
+            leftOrder.forEach(function(originalIndex) {
+                var item = document.createElement('div');
+                item.className = 'match-box-item';
+                item.innerText = targetPhrases[originalIndex];
+                item.id = 'left-' + originalIndex;
+                item.onclick = function() { selectLeftItem(originalIndex); };
+                leftCol.appendChild(item);
+            });
+
+            rightOrder.forEach(function(originalIndex) {
+                var item = document.createElement('div');
+                item.className = 'match-box-item';
+                item.innerText = targetMatches[originalIndex];
+                item.id = 'right-' + originalIndex;
+                item.onclick = function() { selectRightItem(originalIndex); };
+                rightCol.appendChild(item);
+            });
+        }
+
+        function selectLeftItem(index) {
+            if (isGameLocked) return;
+
+            if (leftSelected !== null) {
+                document.getElementById('left-' + leftSelected).classList.remove('selected');
+            }
+
+            leftSelected = index;
+            document.getElementById('left-' + index).classList.add('selected');
+        }
+
+        function selectRightItem(index) {
+            if (isGameLocked || leftSelected === null) return;
+
+            // 1. Clean previous matches pointing to this right element
+            for (var leftKey in connections) {
+                if (connections[leftKey] === index) {
+                    var oldLeftEl = document.getElementById('left-' + leftKey);
+                    for (var c = 0; c < 5; c++) { oldLeftEl.classList.remove('pair-' + c); }
+                    delete connections[leftKey];
+                }
+            }
+
+            // 2. Clean previous choices saved on this left element
+            var leftEl = document.getElementById('left-' + leftSelected);
+            var rightEl = document.getElementById('right-' + index);
+            
+            if (connections[leftSelected] !== undefined) {
+                var oldRightEl = document.getElementById('right-' + connections[leftSelected]);
+                for (var c = 0; c < 5; c++) { oldRightEl.classList.remove('pair-' + c); }
+            }
+
+            for (var c = 0; c < 5; c++) {
+                leftEl.classList.remove('pair-' + c);
+                rightEl.classList.remove('pair-' + c);
+            }
+
+            // 3. Assign pairing code markers matching Left indices
+            connections[leftSelected] = index;
+            var colorClass = 'pair-' + leftSelected;
+
+            leftEl.classList.remove('selected');
+            leftEl.classList.add(colorClass);
+            rightEl.classList.add(colorClass);
+
+            leftSelected = null;
+        }
+
+        function checkMatches() {
+            var totalLinks = Object.keys(connections).length;
+            if (totalLinks < 5) {
+                alert("Sila pastikan semua 5 pasangan telah dipadankan sebelum menyemak jawapan!");
+                return;
+            }
+
+            isGameLocked = true;
+            var correctCount = 0;
+
+            for (var leftIndex in connections) {
+                var rightIndex = connections[leftIndex];
+                var leftEl = document.getElementById('left-' + leftIndex);
+                var rightEl = document.getElementById('right-' + rightIndex);
+
+                if (parseInt(leftIndex) === parseInt(rightIndex)) {
+                    leftEl.className = 'match-box-item correct';
+                    rightEl.className = 'match-box-item correct';
+                    correctCount++;
+                } else {
+                    leftEl.className = 'match-box-item incorrect';
+                    rightEl.className = 'match-box-item incorrect';
+                }
+            }
+
+            var banner = document.getElementById('resultBanner');
+            if (correctCount === 5) {
+                banner.innerText = "Tahniah! Markah Sempurna 5/5 Betul 🎉";
+                banner.className = "result-banner result-success";
+            } else {
+                banner.innerText = "Cuba Lagi! " + correctCount + "/5 Padanan Betul. Klik 'Selerakkan Susunan' untuk mencuba semula!";
+                banner.className = "result-banner result-fail";
+            }
+            banner.style.display = 'block';
+        }
+
+        function scrambleBoard() {
+            buildGameField();
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            buildGameField();
+        });
+    </script>
+</body>
+</html>
