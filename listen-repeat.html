@@ -308,10 +308,73 @@
         .back-btn:hover {
             background-color: #7f8c8d;
         }
+                /* Full-screen Blocker Overlay Design */
+        .orientation-blocker {
+            display: none; /* Hidden by default on desktops and larger screens */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #2c3e50;
+            color: white;
+            z-index: 99999; /* Forces the blocker to sit on top of everything else */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .blocker-content {
+            max-width: 400px;
+        }
+        .blocker-icon {
+            font-size: 3.5rem;
+            display: inline-block;
+            margin-bottom: 15px;
+            animation: rotateIcon 2s infinite ease-in-out;
+        }
+        .orientation-blocker h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.6rem;
+        }
+        .orientation-blocker p {
+            margin: 0;
+            color: #bdc3c7;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+        @keyframes rotateIcon {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* 
+           RESPONSIVE VIEWPORT TRIGGER: 
+           Activates ONLY on screens narrower than 768px (phones) AND when held vertically (portrait).
+        */
+        @media screen and (max-width: 767px) and (orientation: portrait) {
+            .orientation-blocker {
+                display: flex; /* Overrides hidden state and forces full-screen flex layout overlay */
+            }
+            body {
+                overflow: hidden; /* Lock background scrolling while the blocker is active */
+            }
+        }
+
     </style>
 </head>
 <body>
 
+<!-- Screen Lock Blocker Overlay for Mobile Portrait Orientation -->
+<div class="orientation-blocker">
+    <div class="blocker-content">
+        <span class="blocker-icon">🔄</span>
+        <h2>Please Rotate Your Device</h2>
+        <p>This activity is best experienced in Landscape Mode. Please turn your phone sideways to unlock the lesson!</p>
+    </div>
+</div>
 
 <div class="container">
         <h1>Listen & Repeat</h1>
