@@ -223,7 +223,7 @@
     </div>
     <script>
         var savedPhrases = JSON.parse(localStorage.getItem('bmPhrases'));
-        var savedMatches = JSON.parse(localStorage.getItem('chineseMatches')); // Follows category/translation structure mapping
+        var savedMatches = JSON.parse(localStorage.getItem('bmMatches'));
 
         var defaultPhrases = ["Kucing", "Ular", "Harimau", "Buaya", "Paus"];
         var defaultMatches = ["Mamalia", "Reptilia", "Mamalia", "Reptilia", "Mamalia"];
@@ -235,8 +235,9 @@
         var connections = {}; 
         var isGameLocked = false;
 
-        var leftOrder =;
-        var rightOrder =;
+        // FIXED: Initialized tracking indices using safe programmatic array push loops
+        var leftOrder = [];
+        var rightOrder = [];
         for (var i = 0; i < 5; i++) {
             leftOrder.push(i);
             rightOrder.push(i);
@@ -267,24 +268,22 @@
             leftCol.innerHTML = '';
             rightCol.innerHTML = '';
 
-            // Left items are rendered with static incremental flex order values
             leftOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetPhrases[originalIndex];
                 item.id = 'left-' + originalIndex;
-                item.style.order = currentPosition; // Sets a strict layout row index
+                item.style.order = currentPosition; 
                 item.onclick = function() { selectLeftItem(originalIndex); };
                 leftCol.appendChild(item);
             });
 
-            // Right items start random and get high default orders
             rightOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetMatches[originalIndex];
                 item.id = 'right-pos-' + currentPosition;
-                item.style.order = 100 + currentPosition; // Appends them below or randomized originally
+                item.style.order = 100 + currentPosition; 
                 item.onclick = function() { selectRightItem(currentPosition); };
                 rightCol.appendChild(item);
             });
@@ -304,7 +303,6 @@
         function selectRightItem(currentPosition) {
             if (isGameLocked || leftSelected === null) return;
 
-            // 1. Clean previous matches pointing to this right coordinate block position
             for (var leftKey in connections) {
                 if (connections[leftKey] === currentPosition) {
                     var oldLeftEl = document.getElementById('left-' + leftKey);
@@ -316,12 +314,11 @@
             var leftEl = document.getElementById('left-' + leftSelected);
             var rightEl = document.getElementById('right-pos-' + currentPosition);
             
-            // Clean previous selection tracking variables from active elements
             if (connections[leftSelected] !== undefined) {
                 var oldRightEl = document.getElementById('right-pos-' + connections[leftSelected]);
                 if (oldRightEl) {
                     for (var c = 0; c < 5; c++) { oldRightEl.classList.remove('pair-' + c); }
-                    oldRightEl.style.order = 100 + currentPosition; // Re-assigns baseline sorting order back
+                    oldRightEl.style.order = 100 + currentPosition; 
                 }
             }
 
@@ -330,7 +327,6 @@
                 rightEl.classList.remove('pair-' + c);
             }
 
-            // 2. Map new pairing data connection entries
             connections[leftSelected] = currentPosition;
             var colorClass = 'pair-' + leftSelected;
 
@@ -338,7 +334,6 @@
             leftEl.classList.add(colorClass);
             rightEl.classList.add(colorClass);
 
-            // FIXED: Dynamically shifts the right item's CSS order property to match the active Left item's row level!
             var leftTargetLayoutRowOrder = leftEl.style.order;
             rightEl.style.order = leftTargetLayoutRowOrder;
 
