@@ -37,17 +37,16 @@
             margin-bottom: 25px;
         }
         
-        /* FIXED: Changed to a single 2-column grid layout that strictly locks rows together */
+        /* Unified grid arena using smooth layout rendering rules */
         .game-arena {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px 150px; /* 20px row gap, 150px wide center spacing */
+            gap: 20px 150px; /* 20px vertical space, 150px gap between columns */
             margin-bottom: 30px;
             justify-items: center;
             align-items: center;
         }
         
-        /* Smaller box scale profile */
         .match-box-item {
             background-color: #ffffff;
             border: 2px solid #bdc3c7;
@@ -58,7 +57,7 @@
             cursor: pointer;
             text-align: center;
             user-select: none;
-            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s, grid-row 0.3s ease;
             min-height: 46px;
             max-width: 240px;
             width: 100%;
@@ -202,9 +201,8 @@
 
     <div class="container">
         <h1>Chinese Mix & Match</h1>
-        <p class="subtitle">Tap a phrase on the left, then tap its translation. Right items snap perfectly onto the same level to match your choice!</p>
+        <p class="subtitle">Tap an item on the left, then tap its match on the right. Paired blocks stack up top, closing any gaps below automatically!</p>
         
-        <!-- FIXED: Direct unified grid space container for balanced alignments -->
         <div class="game-arena" id="gameArena"></div>
 
         <div id="resultBanner" class="result-banner"></div>
@@ -226,11 +224,11 @@
         var targetMatches = savedMatches && savedMatches.length === 5 ? savedMatches : defaultMatches;
 
         var leftSelected = null;
-        var connections = {}; // Tracks { leftOriginalIndex: rightOriginalIndex }
+        var connections = {}; 
         var isGameLocked = false;
 
-        var leftOrder =;
-        var rightOrder =;
+        var leftOrder = [];
+        var rightOrder = [];
         for (var i = 0; i < 5; i++) {
             leftOrder.push(i);
             rightOrder.push(i);
@@ -246,7 +244,6 @@
             return array;
         }
 
-        // FIXED: Board rendering now builds matching cell components directly inside a uniform layout
         function buildGameField() {
             connections = {};
             leftSelected = null;
@@ -259,34 +256,66 @@
             var arena = document.getElementById('gameArena');
             arena.innerHTML = '';
 
-            // Generate the DOM structures for the left elements first
-            leftOrder.forEach(function(originalIndex, currentPosition) {
+            leftOrder.forEach(function(originalIndex) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetPhrases[originalIndex];
                 item.id = 'left-' + originalIndex;
-                
-                // Forces left items down Column 1 (Grid Column 1) and stacks them by row position
                 item.style.gridColumn = '1';
-                item.style.gridRow = (currentPosition + 1).toString();
-                
-                item.onclick = function() { selectLeftItem(originalIndex); };
                 arena.appendChild(item);
             });
 
-            // Generate right side items down Column 2
             rightOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetMatches[originalIndex];
                 item.id = 'right-pos-' + currentPosition;
-                
-                // Forces right items down Column 2 (Grid Column 2) and drops unselected ones below initially
                 item.style.gridColumn = '2';
-                item.style.gridRow = (currentPosition + 6).toString(); 
-                
-                item.onclick = function() { selectRightItem(currentPosition); };
                 arena.appendChild(item);
+            });
+
+            updateGridRowPositions();
+        }
+
+        function updateGridRowPositions() {
+            var matchedLeftCount = 0;
+            var unmatchedLeftCount = 0;
+            
+            leftOrder.forEach(function(originalIndex) {
+                var leftEl = document.getElementById('left-' + originalIndex);
+                if (!leftEl) return;
+
+                if (connections[originalIndex] !== undefined) {
+                    matchedLeftCount++;
+                    leftEl.style.gridRow = matchedLeftCount.toString();
+                } else {
+                    unmatchedLeftCount++;
+                    leftEl.style.gridRow = (Object.keys(connections).length + unmatchedLeftCount).toString();
+                }
+            });
+
+            var unmatchedRightCount = 0;
+            rightOrder.forEach(function(originalIndex, currentPosition) {
+                var rightEl = document.getElementById('right-pos-' + currentPosition);
+                if (!rightEl) return;
+
+                var connectedLeftIndex = null;
+                for (var leftKey in connections) {
+                    if (connections[leftKey] === currentPosition) {
+                        connectedLeftIndex = parseInt(leftKey);
+                        break;
+                    }
+                }
+
+                if (connectedLeftIndex !== null) {
+                    var companionLeftEl = document.getElementById('left-' + connectedLeftIndex);
+                    if (companionLeftEl) {
+                        rightEl.style.gridRow = companionLeftEl.style.gridRow;
+                    }
+                } else {
+                    unmatchedRightCount++;
+                    rightEl.style.gridRow = (Object.keys(connections).length + unmatchedRightCount).toString();
+                }
             });
         }
 
@@ -304,7 +333,6 @@
         function selectRightItem(currentPosition) {
             if (isGameLocked || leftSelected === null) return;
 
-            // 1. Clean previous matches pointing to this right block coordinate
             for (var leftKey in connections) {
                 if (connections[leftKey] === currentPosition) {
                     var oldLeftEl = document.getElementById('left-' + leftKey);
@@ -316,12 +344,10 @@
             var leftEl = document.getElementById('left-' + leftSelected);
             var rightEl = document.getElementById('right-pos-' + currentPosition);
             
-            // Clean old styling classes from current selection variables
             if (connections[leftSelected] !== undefined) {
                 var oldRightEl = document.getElementById('right-pos-' + connections[leftSelected]);
                 if (oldRightEl) {
                     for (var c = 0; c < 5; c++) { oldRightEl.classList.remove('pair-' + c); }
-                    oldRightEl.style.gridRow = (currentPosition + 6).toString(); // Send old selection back to baseline storage pool
                 }
             }
 
@@ -330,7 +356,6 @@
                 rightEl.classList.remove('pair-' + c);
             }
 
-            // 2. Link pairing states
             connections[leftSelected] = currentPosition;
             var colorClass = 'pair-' + leftSelected;
 
@@ -338,11 +363,19 @@
             leftEl.classList.add(colorClass);
             rightEl.classList.add(colorClass);
 
-            // FIXED: Instantly moves the right item's gridRow position to match the left element exactly!
-            var leftTargetGridRow = leftEl.style.gridRow;
-            rightEl.style.gridRow = leftTargetGridRow;
-
             leftSelected = null;
+            updateGridRowPositions();
+        }
+
+        function bindClickTriggers() {
+            leftOrder.forEach(function(originalIndex) {
+                var el = document.getElementById('left-' + originalIndex);
+                if (el) el.onclick = function() { selectLeftItem(originalIndex); };
+            });
+            rightOrder.forEach(function(originalIndex, currentPosition) {
+                var el = document.getElementById('right-pos-' + currentPosition);
+                if (el) el.onclick = function() { selectRightItem(currentPosition); };
+            });
         }
 
         function checkMatches() {
@@ -387,10 +420,12 @@
 
         function scrambleBoard() {
             buildGameField();
+            bindClickTriggers();
         }
 
         window.addEventListener('DOMContentLoaded', function() {
             buildGameField();
+            bindClickTriggers();
         });
     </script>
 </body>
