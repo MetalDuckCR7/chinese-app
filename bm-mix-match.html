@@ -37,21 +37,16 @@
             margin-bottom: 25px;
         }
         
-        /* FIXED: Set to flex layout columns to allow CSS order re-arranging */
+        /* Unified 2-column grid layout where rows can change completely dynamically */
         .game-arena {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 150px;
+            gap: 20px 150px; /* 20px vertical space, 150px gap between columns */
             margin-bottom: 30px;
-        }
-        .column {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            justify-items: center;
             align-items: center;
         }
         
-        /* Small box scale profiling */
         .match-box-item {
             background-color: #ffffff;
             border: 2px solid #bdc3c7;
@@ -63,7 +58,7 @@
             text-align: center;
             user-select: none;
             transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
-            min-height: 38px;
+            min-height: 46px;
             max-width: 240px;
             width: 100%;
             display: flex;
@@ -206,12 +201,9 @@
 
     <div class="container">
         <h1>Permainan Padan Ayat</h1>
-        <p class="subtitle">Ketik perkataan pada lajur kiri, kemudian ketik padanannya. Item kanan akan beralih kedudukan mengikuti pilihan anda secara automatik!</p>
+        <p class="subtitle">Ketik perkataan di kiri, kemudian ketik padanannya di kanan. Kedua-dua perkataan yang dipadankan akan bergerak ke atas bersama-sama secara automatik!</p>
         
-        <div class="game-arena">
-            <div class="column" id="leftColumn"></div>
-            <div class="column" id="rightColumn"></div>
-        </div>
+        <div class="game-arena" id="gameArena"></div>
 
         <div id="resultBanner" class="result-banner"></div>
 
@@ -232,10 +224,10 @@
         var targetMatches = savedMatches && savedMatches.length === 5 ? savedMatches : defaultMatches;
 
         var leftSelected = null;
-        var connections = {}; 
+        var connections = {}; // Tracks { leftOriginalIndex: rightOriginalPosition }
         var isGameLocked = false;
+        var pairedCount = 0; // Tracks how many completed pairs exist to determine the top row index
 
-        // FIXED: Initialized tracking indices using safe programmatic array push loops
         var leftOrder = [];
         var rightOrder = [];
         for (var i = 0; i < 5; i++) {
@@ -257,35 +249,37 @@
             connections = {};
             leftSelected = null;
             isGameLocked = false;
+            pairedCount = 0;
             document.getElementById('resultBanner').style.display = 'none';
 
             shuffle(leftOrder);
             shuffle(rightOrder);
 
-            var leftCol = document.getElementById('leftColumn');
-            var rightCol = document.getElementById('rightColumn');
-            
-            leftCol.innerHTML = '';
-            rightCol.innerHTML = '';
+            var arena = document.getElementById('gameArena');
+            arena.innerHTML = '';
 
+            // Generate the left column elements with a default layout pool row assignment (Rows 6-10)
             leftOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetPhrases[originalIndex];
                 item.id = 'left-' + originalIndex;
-                item.style.order = currentPosition; 
+                item.style.gridColumn = '1';
+                item.style.gridRow = (currentPosition + 6).toString(); 
                 item.onclick = function() { selectLeftItem(originalIndex); };
-                leftCol.appendChild(item);
+                arena.appendChild(item);
             });
 
+            // Generate right side items down Column 2 with default layout pool row assignments (Rows 11-15)
             rightOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetMatches[originalIndex];
                 item.id = 'right-pos-' + currentPosition;
-                item.style.order = 100 + currentPosition; 
+                item.style.gridColumn = '2';
+                item.style.gridRow = (currentPosition + 11).toString(); 
                 item.onclick = function() { selectRightItem(currentPosition); };
-                rightCol.appendChild(item);
+                arena.appendChild(item);
             });
         }
 
@@ -303,23 +297,30 @@
         function selectRightItem(currentPosition) {
             if (isGameLocked || leftSelected === null) return;
 
+            // 1. Clean previous matches pointing to this right element coordinate
             for (var leftKey in connections) {
                 if (connections[leftKey] === currentPosition) {
                     var oldLeftEl = document.getElementById('left-' + leftKey);
                     for (var c = 0; c < 5; c++) { oldLeftEl.classList.remove('pair-' + c); }
+                    // Send unlinked left item back down to the baseline storage pool
+                    oldLeftEl.style.gridRow = (parseInt(leftKey) + 6).toString();
                     delete connections[leftKey];
+                    pairedCount--;
                 }
             }
 
             var leftEl = document.getElementById('left-' + leftSelected);
             var rightEl = document.getElementById('right-pos-' + currentPosition);
             
+            // 2. Clean old styling if the current left item was already matched to a different right item
             if (connections[leftSelected] !== undefined) {
                 var oldRightEl = document.getElementById('right-pos-' + connections[leftSelected]);
                 if (oldRightEl) {
                     for (var c = 0; c < 5; c++) { oldRightEl.classList.remove('pair-' + c); }
-                    oldRightEl.style.order = 100 + currentPosition; 
+                    // Send unlinked right item back down to the baseline storage pool
+                    oldRightEl.style.gridRow = (connections[leftSelected] + 11).toString();
                 }
+                pairedCount--;
             }
 
             for (var c = 0; c < 5; c++) {
@@ -327,6 +328,7 @@
                 rightEl.classList.remove('pair-' + c);
             }
 
+            // 3. Save connection pairing and apply color codes based on left item index
             connections[leftSelected] = currentPosition;
             var colorClass = 'pair-' + leftSelected;
 
@@ -334,8 +336,12 @@
             leftEl.classList.add(colorClass);
             rightEl.classList.add(colorClass);
 
-            var leftTargetLayoutRowOrder = leftEl.style.order;
-            rightEl.style.order = leftTargetLayoutRowOrder;
+            // FIXED: Dynamically calculates the next available row slot (Rows 1-5) and shifts BOTH items up simultaneously
+            pairedCount++;
+            var safeTargetRow = pairedCount.toString();
+            
+            leftEl.style.gridRow = safeTargetRow;
+            rightEl.style.gridRow = safeTargetRow;
 
             leftSelected = null;
         }
