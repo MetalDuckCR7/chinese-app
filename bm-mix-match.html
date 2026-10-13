@@ -229,7 +229,6 @@
         var savedPhrases = JSON.parse(localStorage.getItem('bmPhrases'));
         var savedMatches = JSON.parse(localStorage.getItem('bmMatches'));
 
-        // Default Vocab & Symmetrical Mapping Configuration Setup
         var defaultPhrases = ["Kucing", "Ular", "Harimau", "Buaya", "Paus"];
         var defaultMatches = ["Mamalia", "Reptilia", "Mamalia", "Reptilia", "Mamalia"];
 
@@ -281,12 +280,11 @@
                 leftCol.appendChild(item);
             });
 
-            // FIXED: Gives each right item element a secondary row identifier mapping
             rightOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetMatches[originalIndex];
-                item.id = 'right-pos-' + currentPosition; // Identified by position on screen
+                item.id = 'right-pos-' + currentPosition;
                 item.setAttribute('data-original-index', originalIndex);
                 item.onclick = function() { selectRightItem(currentPosition); };
                 rightCol.appendChild(item);
@@ -307,7 +305,6 @@
         function selectRightItem(currentPosition) {
             if (isGameLocked || leftSelected === null) return;
 
-            // 1. Clean previous matches pointing to this specific right column coordinate box position
             for (var leftKey in connections) {
                 if (connections[leftKey] === currentPosition) {
                     var oldLeftEl = document.getElementById('left-' + leftKey);
@@ -316,7 +313,6 @@
                 }
             }
 
-            // 2. Clean previous selection variables tracked on the active left selection row
             var leftEl = document.getElementById('left-' + leftSelected);
             var rightEl = document.getElementById('right-pos-' + currentPosition);
             
@@ -332,7 +328,6 @@
                 rightEl.classList.remove('pair-' + c);
             }
 
-            // 3. Assign pairing keys linked directly to the selected left index code signature layout
             connections[leftSelected] = currentPosition;
             var colorClass = 'pair-' + leftSelected;
 
@@ -343,7 +338,6 @@
             leftSelected = null;
         }
 
-        // FIXED: Advanced Valuation Evaluator checking actual text strings instead of cell positions
         function checkMatches() {
             var totalLinks = Object.keys(connections).length;
             if (totalLinks < 5) {
@@ -360,18 +354,17 @@
                 var leftEl = document.getElementById('left-' + leftIndex);
                 var rightEl = document.getElementById('right-pos-' + currentPosition);
 
-                // Get the text value expected for the left item vs the text user picked
                 var correctWordExpected = targetMatches[parseInt(leftIndex)].trim().toLowerCase();
                 var userSelectedWord = rightEl.innerText.trim().toLowerCase();
 
-                // If the text strings match, it's correct (even if the user picked a duplicate row!)
+                // FIXED: Appends status glows via classList manipulation to protect original color values
                 if (correctWordExpected === userSelectedWord) {
-                    leftEl.className = 'match-box-item correct';
-                    rightEl.className = 'match-box-item correct';
+                    leftEl.classList.add('correct');
+                    rightEl.classList.add('correct');
                     correctCount++;
                 } else {
-                    leftEl.className = 'match-box-item incorrect';
-                    rightEl.className = 'match-box-item incorrect';
+                    leftEl.classList.add('incorrect');
+                    rightEl.classList.add('incorrect');
                 }
             }
 
@@ -396,4 +389,5 @@
     </script>
 </body>
 </html>
+
 
