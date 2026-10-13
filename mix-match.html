@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mix and Match Game - Papa Big Chin</title>
+    <title>Chinese Mix and Match - Papa Big Chin</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -37,16 +37,18 @@
             margin-bottom: 25px;
         }
         
-        /* Unified grid arena using smooth layout rendering rules */
+        /* Unified 2-column grid layout that strictly manages dynamic rows */
         .game-arena {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px 150px; /* 20px vertical space, 150px gap between columns */
+            gap: 20px 150px; /* 20px row gap, 150px wide center spacing */
             margin-bottom: 30px;
             justify-items: center;
             align-items: center;
+            position: relative;
         }
         
+        /* Smaller box scale profile */
         .match-box-item {
             background-color: #ffffff;
             border: 2px solid #bdc3c7;
@@ -65,6 +67,7 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
+            z-index: 2; /* Keeps text cards clickable on top of overlay canvas */
         }
         .match-box-item:hover {
             border-color: #3498db;
@@ -92,6 +95,17 @@
             border-color: #e74c3c !important;
             box-shadow: 0 0 15px #e74c3c, inset 0 0 5px rgba(231, 76, 60, 0.5) !important;
             font-weight: bold;
+        }
+        
+        /* High performance 2D pixel buffer canvas layer overlay */
+        .connections-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
         }
         
         /* Orientation Lock Blocker Overlay Styles */
@@ -201,9 +215,11 @@
 
     <div class="container">
         <h1>Chinese Mix & Match</h1>
-        <p class="subtitle">Tap an item on the left, then tap its match on the right.</p>
+        <p class="subtitle">Tap an item on the left, then tap its match on the right. Paired blocks stack up top, closing any gapping rows automatically!</p>
         
-        <div class="game-arena" id="gameArena"></div>
+        <div class="game-arena" id="gameArena">
+            <canvas class="connections-canvas" id="canvasOverlay"></canvas>
+        </div>
 
         <div id="resultBanner" class="result-banner"></div>
 
@@ -249,12 +265,14 @@
             leftSelected = null;
             isGameLocked = false;
             document.getElementById('resultBanner').style.display = 'none';
+            clearCanvas();
 
             shuffle(leftOrder);
             shuffle(rightOrder);
 
             var arena = document.getElementById('gameArena');
-            arena.innerHTML = '';
+            var items = arena.querySelectorAll('.match-box-item');
+            items.forEach(function(item) { item.remove(); });
 
             leftOrder.forEach(function(originalIndex) {
                 var item = document.createElement('div');
@@ -377,6 +395,78 @@
                 if (el) el.onclick = function() { selectRightItem(currentPosition); };
             });
         }
+        // FIXED HARDCORE ENGINE: Custom 2D straight-line vector processor mapping rules
+        function drawVerificationLinesAndBadges() {
+            var canvas = document.getElementById('canvasOverlay');
+            var ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            var arenaRect = document.getElementById('gameArena').getBoundingClientRect();
+
+            for (var leftIndex in connections) {
+                var currentPosition = connections[leftIndex];
+                
+                var leftEl = document.getElementById('left-' + leftIndex);
+                var rightEl = document.getElementById('right-pos-' + currentPosition);
+
+                if (!leftEl || !rightEl) continue;
+
+                var leftRect = leftEl.getBoundingClientRect();
+                var rightRect = rightEl.getBoundingClientRect();
+
+                var x1 = leftRect.right - arenaRect.left;
+                var y1 = (leftRect.top + leftRect.height / 2) - arenaRect.top;
+                var x2 = rightRect.left - arenaRect.left;
+                var y2 = (rightRect.top + rightRect.height / 2) - arenaRect.top;
+
+                var correctWordExpected = targetMatches[parseInt(leftIndex)].trim().toLowerCase();
+                var userSelectedWord = rightEl.innerText.trim().toLowerCase();
+                var isCorrect = (correctWordExpected === userSelectedWord);
+
+                var colorCode = isCorrect ? '#2ecc71' : '#e74c3c';
+                var badgeSymbol = isCorrect ? 'Y' : 'X';
+
+                ctx.save();
+                ctx.strokeStyle = colorCode;
+                ctx.lineWidth = 4;
+                if (!isCorrect) {
+                    ctx.setLineDash([8, 6]);
+                }
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                ctx.restore();
+
+                // FIXED MODIFICATION: Only draw the circular error feedback badge if the item pairing is wrong
+                if (!isCorrect) {
+                    var midX = (x1 + x2) / 2;
+                    var midY = (y1 + y2) / 2;
+
+                    ctx.beginPath();
+                    ctx.arc(midX, midY, 14, 0, 2 * Math.PI);
+                    ctx.fillStyle = colorCode;
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 15px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(badgeSymbol, midX, midY);
+                }
+            }
+        }
+
+        function clearCanvas() {
+            var canvas = document.getElementById('canvasOverlay');
+            if (canvas) {
+                var ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
 
         function checkMatches() {
             var totalLinks = Object.keys(connections).length;
@@ -407,9 +497,11 @@
                 }
             }
 
+            drawVerificationLinesAndBadges();
+
             var banner = document.getElementById('resultBanner');
             if (correctCount === 5) {
-                banner.innerText = "Perfect Score! 5/5 Correct 🎉";
+                banner.innerText = "Perfect Score! 5/5 Correct \uD83C\uDF89";
                 banner.className = "result-banner result-success";
             } else {
                 banner.innerText = "Keep Practicing! " + correctCount + "/5 Matches Correct. Click 'Scramble Order' to try again!";
@@ -422,6 +514,10 @@
             buildGameField();
             bindClickTriggers();
         }
+
+        window.addEventListener('resize', function() {
+            if (isGameLocked) drawVerificationLinesAndBadges();
+        });
 
         window.addEventListener('DOMContentLoaded', function() {
             buildGameField();
