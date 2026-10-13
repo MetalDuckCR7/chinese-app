@@ -37,14 +37,15 @@
             margin-bottom: 25px;
         }
         
-        /* Unified grid arena using smooth layout rendering rules */
+        /* Unified layout wrapper zone hosting the HTML5 canvas layer underneath text cards */
         .game-arena {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px 150px; /* 20px vertical space, 150px gap between columns */
+            gap: 20px 150px;
             margin-bottom: 30px;
             justify-items: center;
             align-items: center;
+            position: relative;
         }
         
         .match-box-item {
@@ -65,6 +66,7 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
+            z-index: 2; /* Forces text items to float above lines cleanly */
         }
         .match-box-item:hover {
             border-color: #3498db;
@@ -92,6 +94,17 @@
             border-color: #e74c3c !important;
             box-shadow: 0 0 15px #e74c3c, inset 0 0 5px rgba(231, 76, 60, 0.5) !important;
             font-weight: bold;
+        }
+        
+        /* NEW FIXED CORE: Pure pixel canvas element sheet layer */
+        .connections-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
         }
         
         /* Orientation Lock Blocker Overlay Styles */
@@ -194,26 +207,29 @@
     <div class="orientation-blocker">
         <div class="blocker-content">
             <span class="blocker-icon">🔄</span>
-            <h2>Please Rotate Your Device</h2>
-            <p>This activity is best experienced in Landscape Mode. Please turn your phone sideways to unlock the lesson!</p>
+            <h2>Sila Putar Peranti Anda</h2>
+            <p>Aktiviti ini paling baik dialami dalam Mod Landskap. Sila pusingkan telefon anda ke sisi untuk membuka kunci pelajaran!</p>
         </div>
     </div>
 
     <div class="container">
         <h1>Permainan Padan Ayat</h1>
-        <p class="subtitle">Pilih kotak kiri dahulu kemudian padankan kotak betul disebelah kanan.</p>
+        <p class="subtitle">Ketik perkataan di lajur kiri kemudian padanannya di lajur kanan. Penanda semakan jawapan akan dilukis setelah anda menekan butang Sahkan Jawapan!</p>
         
-        <div class="game-arena" id="gameArena"></div>
+        <div class="game-arena" id="gameArena">
+            <!-- FIXED CORE: High performance 2D pixel buffer canvas layout layer -->
+            <canvas class="connections-canvas" id="canvasOverlay"></canvas>
+        </div>
 
         <div id="resultBanner" class="result-banner"></div>
 
         <div class="action-grid">
             <button onclick="checkMatches()" class="action-btn verify-btn">Sahkan Jawapan ✔️</button>
             <button onclick="scrambleBoard()" class="action-btn scramble-btn">Selerakkan Susunan 🔄</button>
-            <button onclick="window.location.href='bahasa-melayu.html'" class="action-btn exit-btn">Back to Bahasa Melayu Menu ➔</button>
+            <button onclick="window.location.href='bahasa-melayu.html'" class="action-btn exit-btn">Kembali ke Menu Utama ➔</button>
         </div>
     </div>
-     <script>
+    <script>
         var savedPhrases = JSON.parse(localStorage.getItem('bmPhrases'));
         var savedMatches = JSON.parse(localStorage.getItem('bmMatches'));
 
@@ -227,7 +243,6 @@
         var connections = {}; 
         var isGameLocked = false;
 
-        // FIXED: Initialized tracking indices using safe programmatic array push loops
         var leftOrder = [];
         var rightOrder = [];
         for (var i = 0; i < 5; i++) {
@@ -250,12 +265,14 @@
             leftSelected = null;
             isGameLocked = false;
             document.getElementById('resultBanner').style.display = 'none';
+            clearCanvas();
 
             shuffle(leftOrder);
             shuffle(rightOrder);
 
             var arena = document.getElementById('gameArena');
-            arena.innerHTML = '';
+            var items = arena.querySelectorAll('.match-box-item');
+            items.forEach(function(item) { item.remove(); });
 
             leftOrder.forEach(function(originalIndex) {
                 var item = document.createElement('div');
@@ -277,7 +294,6 @@
 
             updateGridRowPositions();
         }
-
         function updateGridRowPositions() {
             var matchedLeftCount = 0;
             var unmatchedLeftCount = 0;
@@ -378,6 +394,78 @@
                 if (el) el.onclick = function() { selectRightItem(currentPosition); };
             });
         }
+                function drawVerificationLinesAndBadges() {
+            var canvas = document.getElementById('canvasOverlay');
+            var ctx = canvas.getContext('2d');
+            
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            var arenaRect = document.getElementById('gameArena').getBoundingClientRect();
+
+            for (var leftIndex in connections) {
+                var currentPosition = connections[leftIndex];
+                
+                var leftEl = document.getElementById('left-' + leftIndex);
+                var rightEl = document.getElementById('right-pos-' + currentPosition);
+
+                if (!leftEl || !rightEl) continue;
+
+                var leftRect = leftEl.getBoundingClientRect();
+                var rightRect = rightEl.getBoundingClientRect();
+
+                var x1 = leftRect.right - arenaRect.left;
+                var y1 = (leftRect.top + leftRect.height / 2) - arenaRect.top;
+                var x2 = rightRect.left - arenaRect.left;
+                var y2 = (rightRect.top + rightRect.height / 2) - arenaRect.top;
+
+                var correctWordExpected = targetMatches[parseInt(leftIndex)].trim().toLowerCase();
+                var userSelectedWord = rightEl.innerText.trim().toLowerCase();
+                var isCorrect = (correctWordExpected === userSelectedWord);
+
+                var colorCode = isCorrect ? '#2ecc71' : '#e74c3c';
+                var badgeSymbol = isCorrect ? 'Y' : 'X';
+
+                ctx.save();
+                ctx.strokeStyle = colorCode;
+                ctx.lineWidth = 4;
+                if (!isCorrect) {
+                    ctx.setLineDash([8, 6]);
+                }
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                ctx.restore();
+
+                // FIXED: Only draw the circular error badge if the answer is incorrect
+                 if (!isCorrect) {
+                    var midX = (x1 + x2) / 2;
+                    var midY = (y1 + y2) / 2;
+
+                    ctx.beginPath();
+                    ctx.arc(midX, midY, 14, 0, 2 * Math.PI);
+                    ctx.fillStyle = colorCode;
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 15px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(badgeSymbol, midX, midY);
+                }
+            }
+        }
+
+
+        function clearCanvas() {
+            var canvas = document.getElementById('canvasOverlay');
+            if (canvas) {
+                var ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
 
         function checkMatches() {
             var totalLinks = Object.keys(connections).length;
@@ -408,9 +496,11 @@
                 }
             }
 
+            drawVerificationLinesAndBadges();
+
             var banner = document.getElementById('resultBanner');
             if (correctCount === 5) {
-                banner.innerText = "Tahniah! Markah Sempurna 5/5 Betul 🎉";
+                banner.innerText = "Tahniah! Markah Sempurna 5/5 Betul \uD83C\uDF89";
                 banner.className = "result-banner result-success";
             } else {
                 banner.innerText = "Cuba Lagi! " + correctCount + "/5 Padanan Betul. Klik 'Selerakkan Susunan' untuk mencuba semula!";
@@ -424,6 +514,10 @@
             bindClickTriggers();
         }
 
+        window.addEventListener('resize', function() {
+            if (isGameLocked) drawVerificationLinesAndBadges();
+        });
+
         window.addEventListener('DOMContentLoaded', function() {
             buildGameField();
             bindClickTriggers();
@@ -431,4 +525,3 @@
     </script>
 </body>
 </html>
-
