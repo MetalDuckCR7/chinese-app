@@ -37,21 +37,17 @@
             margin-bottom: 25px;
         }
         
-        /* Grid Arena configured for flex-order repositioning elements */
+        /* FIXED: Changed to a single 2-column grid layout that strictly locks rows together */
         .game-arena {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 150px;
+            gap: 20px 150px; /* 20px row gap, 150px wide center spacing */
             margin-bottom: 30px;
-        }
-        .column {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            justify-items: center;
             align-items: center;
         }
         
-        /* Small box scale profiling */
+        /* Smaller box scale profile */
         .match-box-item {
             background-color: #ffffff;
             border: 2px solid #bdc3c7;
@@ -63,7 +59,7 @@
             text-align: center;
             user-select: none;
             transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
-            min-height: 38px;
+            min-height: 46px;
             max-width: 240px;
             width: 100%;
             display: flex;
@@ -206,12 +202,10 @@
 
     <div class="container">
         <h1>Chinese Mix & Match</h1>
-        <p class="subtitle">Tap a phrase on the left, then tap its translation. Right items automatically align to match your choice!</p>
+        <p class="subtitle">Tap a phrase on the left, then tap its translation. Right items snap perfectly onto the same level to match your choice!</p>
         
-        <div class="game-arena">
-            <div class="column" id="leftColumn"></div>
-            <div class="column" id="rightColumn"></div>
-        </div>
+        <!-- FIXED: Direct unified grid space container for balanced alignments -->
+        <div class="game-arena" id="gameArena"></div>
 
         <div id="resultBanner" class="result-banner"></div>
 
@@ -232,11 +226,11 @@
         var targetMatches = savedMatches && savedMatches.length === 5 ? savedMatches : defaultMatches;
 
         var leftSelected = null;
-        var connections = {}; 
+        var connections = {}; // Tracks { leftOriginalIndex: rightOriginalIndex }
         var isGameLocked = false;
 
-        var leftOrder = [];
-        var rightOrder = [];
+        var leftOrder =;
+        var rightOrder =;
         for (var i = 0; i < 5; i++) {
             leftOrder.push(i);
             rightOrder.push(i);
@@ -252,6 +246,7 @@
             return array;
         }
 
+        // FIXED: Board rendering now builds matching cell components directly inside a uniform layout
         function buildGameField() {
             connections = {};
             leftSelected = null;
@@ -261,30 +256,37 @@
             shuffle(leftOrder);
             shuffle(rightOrder);
 
-            var leftCol = document.getElementById('leftColumn');
-            var rightCol = document.getElementById('rightColumn');
-            
-            leftCol.innerHTML = '';
-            rightCol.innerHTML = '';
+            var arena = document.getElementById('gameArena');
+            arena.innerHTML = '';
 
+            // Generate the DOM structures for the left elements first
             leftOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetPhrases[originalIndex];
                 item.id = 'left-' + originalIndex;
-                item.style.order = currentPosition; 
+                
+                // Forces left items down Column 1 (Grid Column 1) and stacks them by row position
+                item.style.gridColumn = '1';
+                item.style.gridRow = (currentPosition + 1).toString();
+                
                 item.onclick = function() { selectLeftItem(originalIndex); };
-                leftCol.appendChild(item);
+                arena.appendChild(item);
             });
 
+            // Generate right side items down Column 2
             rightOrder.forEach(function(originalIndex, currentPosition) {
                 var item = document.createElement('div');
                 item.className = 'match-box-item';
                 item.innerText = targetMatches[originalIndex];
                 item.id = 'right-pos-' + currentPosition;
-                item.style.order = 100 + currentPosition; 
+                
+                // Forces right items down Column 2 (Grid Column 2) and drops unselected ones below initially
+                item.style.gridColumn = '2';
+                item.style.gridRow = (currentPosition + 6).toString(); 
+                
                 item.onclick = function() { selectRightItem(currentPosition); };
-                rightCol.appendChild(item);
+                arena.appendChild(item);
             });
         }
 
@@ -302,6 +304,7 @@
         function selectRightItem(currentPosition) {
             if (isGameLocked || leftSelected === null) return;
 
+            // 1. Clean previous matches pointing to this right block coordinate
             for (var leftKey in connections) {
                 if (connections[leftKey] === currentPosition) {
                     var oldLeftEl = document.getElementById('left-' + leftKey);
@@ -313,11 +316,12 @@
             var leftEl = document.getElementById('left-' + leftSelected);
             var rightEl = document.getElementById('right-pos-' + currentPosition);
             
+            // Clean old styling classes from current selection variables
             if (connections[leftSelected] !== undefined) {
                 var oldRightEl = document.getElementById('right-pos-' + connections[leftSelected]);
                 if (oldRightEl) {
                     for (var c = 0; c < 5; c++) { oldRightEl.classList.remove('pair-' + c); }
-                    oldRightEl.style.order = 100 + currentPosition; 
+                    oldRightEl.style.gridRow = (currentPosition + 6).toString(); // Send old selection back to baseline storage pool
                 }
             }
 
@@ -326,6 +330,7 @@
                 rightEl.classList.remove('pair-' + c);
             }
 
+            // 2. Link pairing states
             connections[leftSelected] = currentPosition;
             var colorClass = 'pair-' + leftSelected;
 
@@ -333,8 +338,9 @@
             leftEl.classList.add(colorClass);
             rightEl.classList.add(colorClass);
 
-            var leftTargetLayoutRowOrder = leftEl.style.order;
-            rightEl.style.order = leftTargetLayoutRowOrder;
+            // FIXED: Instantly moves the right item's gridRow position to match the left element exactly!
+            var leftTargetGridRow = leftEl.style.gridRow;
+            rightEl.style.gridRow = leftTargetGridRow;
 
             leftSelected = null;
         }
